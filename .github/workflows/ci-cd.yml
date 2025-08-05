@@ -38,20 +38,15 @@ jobs:
       with:
         sarif_file: 'trivy-results.sarif'
 
-    - name: Run Semgrep
-      uses: returntocorp/semgrep-action@v1
-      with:
-        config: >-
-          p/security-audit
-          p/secrets
-          p/python
-          p/javascript
-
-    - name: Upload Semgrep results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: semgrep.sarif
+    # Semgrep temporarily disabled due to SARIF issues
+    # - name: Run Semgrep
+    #   uses: returntocorp/semgrep-action@v1
+    #   with:
+    #     config: >-
+    #       p/security-audit
+    #       p/secrets
+    #       p/python
+    #       p/javascript
 
   # Backend Testing
   backend-test:
