@@ -356,17 +356,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 )}
               </button>
             </div>
-      </form>
+          </form>
 
-      {/* Input Hints */}
-      <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-        <span>Press Enter to send, Shift + Enter for new line</span>
-        {disabled && (
-          <span className="text-orange-500">Please wait...</span>
-        )}
+          {/* Input Hints */}
+          <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+            <span>Press Enter to send, Shift + Enter for new line</span>
+            {disabled && (
+              <span className="text-orange-500">Please wait...</span>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
-  )
+    )
 }
 
 export default ChatInput
