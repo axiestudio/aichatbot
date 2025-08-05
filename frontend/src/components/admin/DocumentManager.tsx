@@ -275,14 +275,14 @@ export const DocumentManager: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): 'default' | 'success' | 'warning' | 'error' | 'info' => {
     switch (status) {
-      case 'processed': return 'green';
-      case 'processing': return 'blue';
-      case 'uploading': return 'yellow';
-      case 'failed': return 'red';
-      case 'indexed': return 'purple';
-      default: return 'gray';
+      case 'processed': return 'success';
+      case 'processing': return 'info';
+      case 'uploading': return 'warning';
+      case 'failed': return 'error';
+      case 'indexed': return 'info';
+      default: return 'default';
     }
   };
 
@@ -450,12 +450,12 @@ export const DocumentManager: React.FC = () => {
                         {doc.tags && doc.tags.length > 0 && (
                           <div className="flex gap-1 mt-1">
                             {doc.tags.slice(0, 3).map((tag, index) => (
-                              <Badge key={index} variant="secondary" size="sm">
+                              <Badge key={index} variant="default" size="sm">
                                 {tag}
                               </Badge>
                             ))}
                             {doc.tags.length > 3 && (
-                              <Badge variant="secondary" size="sm">
+                              <Badge variant="default" size="sm">
                                 +{doc.tags.length - 3}
                               </Badge>
                             )}

@@ -127,10 +127,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
     <div className={`group flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 fade-in`}>
       <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-sm lg:max-w-md relative`}>
         {/* Reply indicator */}
-        {message.replyTo && (
+        {message.reply_to && (
           <div className="mb-2 px-3 py-2 bg-gray-100 rounded-lg text-xs text-gray-600 border-l-2 border-blue-500">
             <div className="font-medium">Replying to:</div>
-            <div className="truncate">{message.replyTo.content}</div>
+            <div className="truncate">{message.reply_to.content}</div>
           </div>
         )}
 

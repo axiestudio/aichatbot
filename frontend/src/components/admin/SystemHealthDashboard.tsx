@@ -121,6 +121,21 @@ export default function SystemHealthDashboard() {
     }
   };
 
+  const getStatusVariant = (status: string): 'default' | 'success' | 'warning' | 'error' | 'info' => {
+    switch (status) {
+      case 'up':
+      case 'healthy':
+        return 'success';
+      case 'warning':
+        return 'warning';
+      case 'down':
+      case 'error':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
+
   const formatBytes = (bytes: number) => {
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     if (bytes === 0) return '0 B';
@@ -145,7 +160,7 @@ export default function SystemHealthDashboard() {
             <h2 className="text-xl font-semibold">System Health Overview</h2>
             <div className="flex items-center space-x-2">
               {getStatusIcon(health?.overall || 'unknown')}
-              <Badge color={getStatusColor(health?.overall || 'gray')}>
+              <Badge variant={getStatusVariant(health?.overall || 'unknown')}>
                 {health?.overall?.toUpperCase() || 'UNKNOWN'}
               </Badge>
             </div>
@@ -185,9 +200,8 @@ export default function SystemHealthDashboard() {
                   <span>Usage</span>
                   <span>{metrics.cpu.usage.toFixed(1)}%</span>
                 </div>
-                <ProgressBar 
-                  progress={metrics.cpu.usage} 
-                  color={metrics.cpu.usage > 80 ? 'red' : metrics.cpu.usage > 60 ? 'yellow' : 'green'}
+                <ProgressBar
+                  progress={metrics.cpu.usage}
                 />
                 
                 <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
@@ -213,9 +227,8 @@ export default function SystemHealthDashboard() {
                   <span>Used</span>
                   <span>{formatBytes(metrics.memory.used)} / {formatBytes(metrics.memory.total)}</span>
                 </div>
-                <ProgressBar 
-                  progress={metrics.memory.percentage} 
-                  color={metrics.memory.percentage > 85 ? 'red' : metrics.memory.percentage > 70 ? 'yellow' : 'green'}
+                <ProgressBar
+                  progress={metrics.memory.percentage}
                 />
                 
                 <div className="text-sm text-gray-600">
@@ -240,9 +253,8 @@ export default function SystemHealthDashboard() {
                   <span>Used</span>
                   <span>{formatBytes(metrics.disk.used)} / {formatBytes(metrics.disk.total)}</span>
                 </div>
-                <ProgressBar 
-                  progress={metrics.disk.percentage} 
-                  color={metrics.disk.percentage > 90 ? 'red' : metrics.disk.percentage > 75 ? 'yellow' : 'green'}
+                <ProgressBar
+                  progress={metrics.disk.percentage}
                 />
                 
                 <div className="text-sm text-gray-600">

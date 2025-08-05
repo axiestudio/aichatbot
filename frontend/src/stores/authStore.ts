@@ -4,6 +4,7 @@ import { AdminUser } from '../types'
 
 interface AuthState {
   isAuthenticated: boolean
+  isLoading: boolean
   user: AdminUser | null
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
@@ -14,6 +15,7 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       isAuthenticated: false,
+      isLoading: false,
       user: null,
       
       login: async (email: string, password: string) => {

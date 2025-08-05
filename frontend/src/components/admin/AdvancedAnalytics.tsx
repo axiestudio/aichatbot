@@ -59,7 +59,7 @@ export const AdvancedAnalytics: React.FC = () => {
     
     if (autoRefresh) {
       const interval = setInterval(loadAnalytics, 30000); // Refresh every 30 seconds
-      setRefreshInterval(interval);
+      setRefreshInterval(interval as any);
     } else if (refreshInterval) {
       clearInterval(refreshInterval);
       setRefreshInterval(null);
@@ -116,13 +116,13 @@ export const AdvancedAnalytics: React.FC = () => {
     return `${hours}h ${minutes}m ${secs}s`;
   };
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = (severity: string): 'default' | 'success' | 'warning' | 'error' | 'info' => {
     switch (severity) {
-      case 'critical': return 'red';
-      case 'high': return 'yellow';
-      case 'medium': return 'blue';
-      case 'low': return 'green';
-      default: return 'gray';
+      case 'critical': return 'error';
+      case 'high': return 'warning';
+      case 'medium': return 'info';
+      case 'low': return 'success';
+      default: return 'default';
     }
   };
 
@@ -333,7 +333,7 @@ export const AdvancedAnalytics: React.FC = () => {
                   {analytics.chat_metrics.popular_topics.slice(0, 5).map((topic, index) => (
                     <div key={index} className="flex justify-between items-center">
                       <span className="text-sm">{topic.topic}</span>
-                      <Badge variant="secondary">{topic.count}</Badge>
+                      <Badge variant="default">{topic.count}</Badge>
                     </div>
                   ))}
                 </div>
@@ -365,7 +365,7 @@ export const AdvancedAnalytics: React.FC = () => {
                   {Object.entries(analytics.document_metrics.documents_by_type).map(([type, count]) => (
                     <div key={type} className="flex justify-between items-center">
                       <span className="text-sm uppercase">{type}</span>
-                      <Badge variant="secondary">{count}</Badge>
+                      <Badge variant="default">{count}</Badge>
                     </div>
                   ))}
                 </div>
