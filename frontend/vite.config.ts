@@ -10,13 +10,14 @@ export default defineConfig({
   },
   preview: {
     port: 8080,
-    host: true,
-    allowedHosts: [
-      'localhost',
-      '127.0.0.1',
-      '*.railway.app',
-      'aichatbot-production-3c7f.up.railway.app'
-    ]
+    host: '0.0.0.0',
+    strictPort: false,
+    cors: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    }
   },
   build: {
     outDir: 'dist',
