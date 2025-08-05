@@ -267,7 +267,7 @@ class RagInstruction(Base):
 class SupabaseConfiguration(Base):
     """Supabase configuration database model"""
     __tablename__ = "supabase_configurations"
-    
+
     id = Column(String(255), primary_key=True)
     name = Column(String(255), nullable=False)
     url = Column(String(500), nullable=False)
@@ -275,9 +275,18 @@ class SupabaseConfiguration(Base):
     service_key = Column(String(500), nullable=True)  # Encrypted
     table_name = Column(String(100), default='documents')
     search_columns = Column(JSON, nullable=True)
+    table_prefix = Column(String(50), default='chatbot_')
+    auto_create_tables = Column(Boolean, default=True)
+    store_chat_messages = Column(Boolean, default=True)
+    store_user_sessions = Column(Boolean, default=True)
+    store_analytics = Column(Boolean, default=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
+# Alias for backward compatibility
+SupabaseConfig = SupabaseConfiguration
 
 
 class SecurityEvent(Base):

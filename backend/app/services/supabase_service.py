@@ -173,3 +173,60 @@ class SupabaseService:
         logger.info(f"Knowledge base table creation requested for {table_name}")
         logger.info("Please create the table manually in Supabase with columns: id, title, content, metadata, created_at, updated_at")
         return True
+
+    async def save_chat_message(self, message_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Save chat message to Supabase"""
+        if not self.client:
+            return None
+
+        try:
+            from datetime import datetime
+            table_name = "chat_messages"
+            if self.config and hasattr(self.config, 'table_prefix'):
+                table_name = f"{self.config.table_prefix}messages"
+
+            message_data['timestamp'] = message_data.get('timestamp', datetime.utcnow().isoformat())
+            response = self.client.table(table_name).insert(message_data).execute()
+            return response.data[0] if response.data else None
+        except Exception as e:
+            logger.error(f"Error saving chat message: {e}")
+            return None
+
+    async def save_user_session(self, session_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Save user session to Supabase"""
+        if not self.client:
+            return None
+
+        try:
+            from datetime import datetime
+            table_name = "user_sessions"
+            if self.config and hasattr(self.config, 'table_prefix'):
+                table_name = f"{self.config.table_prefix}sessions"
+
+            session_data['created_at'] = session_data.get('created_at', datetime.utcnow().isoformat())
+            response = self.client.table(table_name).insert(session_data).execute()
+            return response.data[0] if response.data else None
+        except Exception as e:
+            logger.error(f"Error saving user session: {e}")
+            return None
+
+    async def get_user_chat_history(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get user's chat history from Supabase"""
+        if not self.client:
+            return []
+
+        try:
+            table_name = "chat_messages"
+            if self.config and hasattr(self.config, 'table_prefix'):
+                table_name = f"{self.config.table_prefix}messages"
+
+            response = self.client.table(table_name)\
+                .select('*')\
+                .eq('user_id', user_id)\
+                .order('timestamp', desc=True)\
+                .limit(limit)\
+                .execute()
+            return response.data or []
+        except Exception as e:
+            logger.error(f"Error getting chat history: {e}")
+            return []
