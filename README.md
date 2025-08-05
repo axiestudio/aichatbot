@@ -1,8 +1,49 @@
-# Modern Chatbot System
+# 🤖 Enterprise AI Chatbot Platform
 
-A comprehensive chatbot solution with React/TypeScript frontend and Python RAG backend.
+A production-ready, enterprise-grade AI chatbot platform with advanced features including real-time messaging, file uploads, search functionality, and comprehensive monitoring.
 
-## Architecture
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/your-template-id)
+
+## ✨ Features
+
+- 🚀 **Real-time Messaging** - WebSocket-powered instant communication
+- 📁 **Secure File Upload** - Virus scanning and validation
+- 🔍 **Advanced Search** - Full-text search with analytics
+- 💬 **Rich Chat Features** - Reactions, replies, typing indicators
+- 🛡️ **Enterprise Security** - Multi-layer protection
+- 📊 **Comprehensive Monitoring** - Real-time metrics and error tracking
+- 🎨 **Modern UI** - Responsive React interface
+- 🐳 **Docker Ready** - Complete containerization
+- ☁️ **Cloud Native** - Railway deployment ready
+
+## 🚀 Quick Deploy
+
+### Railway (Recommended)
+1. Click the "Deploy on Railway" button above
+2. Connect your GitHub account
+3. Add PostgreSQL and Redis services
+4. Set environment variables from `railway-env-template.txt`
+5. Deploy and enjoy!
+
+### Local Development
+```bash
+# Clone repository
+git clone https://github.com/axiestudio/aichatbot.git
+cd aichatbot
+
+# Backend setup
+cd backend
+pip install -r requirements-docker.txt
+alembic upgrade head
+uvicorn app.main:app --reload
+
+# Frontend setup (new terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+## 🏗️ Architecture
 
 ### Frontend (React + TypeScript + Vite)
 - **Chat Interface**: Embeddable chat widget that can be used as an iframe

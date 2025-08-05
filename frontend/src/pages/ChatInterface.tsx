@@ -132,10 +132,13 @@ export default function ChatInterface() {
       </div>
 
       {/* Input Area */}
-      <ChatInput
-        onSendMessage={handleSendMessage}
-        disabled={isLoading}
-        placeholder="Type your message..."
+      <div className="border-t border-gray-200 bg-white">
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          disabled={isLoading}
+          placeholder="Type your message..."
+        />
+      </div>
     </div>
   )
 }

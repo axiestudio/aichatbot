@@ -21,6 +21,41 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo)
+
+    // Report to error tracking service in production
+    if (import.meta.env.PROD) {
+      this.reportError(error, errorInfo)
+    }
+  }
+
+  private reportError(error: Error, errorInfo: ErrorInfo) {
+    // Report to Sentry or other error tracking service
+    try {
+      // Send error to backend for logging
+      fetch('/api/v1/errors/report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          error: {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          },
+          errorInfo: {
+            componentStack: errorInfo.componentStack
+          },
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          url: window.location.href
+        })
+      }).catch(reportError => {
+        console.error('Failed to report error:', reportError)
+      })
+    } catch (reportError) {
+      console.error('Failed to report error:', reportError)
+    }
   }
 
   public render() {

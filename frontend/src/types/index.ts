@@ -1,8 +1,40 @@
+export interface MessageAttachment {
+  id: string;
+  filename: string;
+  original_filename: string;
+  file_size: number;
+  mime_type: string;
+  attachment_type: 'image' | 'audio' | 'document' | 'video';
+  url: string;
+  thumbnail_url?: string;
+}
+
+export interface MessageReaction {
+  emoji: string;
+  count: number;
+  users: string[];
+}
+
+export interface MessageReply {
+  message_id: string;
+  content: string;
+  role: 'user' | 'assistant' | 'system';
+  timestamp: Date;
+}
+
 export interface Message {
   id: string;
+  session_id: string;
   content: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   timestamp: Date;
+  status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
+  attachments: MessageAttachment[];
+  reactions: MessageReaction[];
+  reply_to?: MessageReply;
+  edited_at?: Date;
+  deleted_at?: Date;
+  metadata: Record<string, any>;
 }
 
 export interface ChatConfig {

@@ -1,0 +1,51 @@
+# Railway Environment Variables Template
+# Copy these to your Railway service environment variables
+
+# Backend Service Environment Variables
+SECRET_KEY=your-super-secret-key-minimum-32-characters-long
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+REDIS_URL=${{Redis.REDIS_URL}}
+ENVIRONMENT=production
+DEBUG=false
+LOG_LEVEL=INFO
+
+# Authentication
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your-secure-admin-password
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# CORS Configuration
+ALLOWED_ORIGINS=["https://your-frontend-domain.railway.app", "http://localhost:3000"]
+ALLOWED_HOSTS=["your-backend-domain.railway.app", "localhost"]
+
+# File Upload Configuration
+UPLOAD_DIR=/app/uploads
+MAX_FILE_SIZE=10485760
+QUARANTINE_DIR=/app/quarantine
+ENABLE_VIRUS_SCANNING=false
+
+# WebSocket Configuration
+WS_HEARTBEAT_INTERVAL=30
+WS_MAX_CONNECTIONS=1000
+WS_MESSAGE_RATE_LIMIT=60
+
+# Error Tracking
+ENABLE_ERROR_TRACKING=true
+ERROR_RETENTION_DAYS=30
+
+# AI API Keys (Optional - add your own)
+OPENAI_API_KEY=your-openai-api-key
+ANTHROPIC_API_KEY=your-anthropic-api-key
+GOOGLE_API_KEY=your-google-api-key
+
+# Frontend Service Environment Variables
+VITE_API_URL=https://your-backend-domain.railway.app
+VITE_WS_URL=wss://your-backend-domain.railway.app
+VITE_ENVIRONMENT=production
+
+# Feature Flags
+VITE_ENABLE_FILE_UPLOAD=true
+VITE_ENABLE_VOICE_RECORDING=true
+VITE_ENABLE_MESSAGE_REACTIONS=true
+VITE_ENABLE_MESSAGE_REPLIES=true
+VITE_ENABLE_SEARCH=true

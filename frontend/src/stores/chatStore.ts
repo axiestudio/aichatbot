@@ -6,9 +6,11 @@ interface ChatState {
   isLoading: boolean
   config: ChatConfig | null
   sessionId: string | null
-  
-  addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void
+
+  addMessage: (message: Message) => void
+  updateMessage: (messageId: string, updates: Partial<Message>) => void
   setMessages: (messages: Message[]) => void
+  clearMessages: () => void
   setLoading: (loading: boolean) => void
   setConfig: (config: ChatConfig) => void
   setSessionId: (sessionId: string) => void
@@ -23,15 +25,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
   sessionId: null,
   
   addMessage: (message) => {
-    const newMessage: Message = {
-      ...message,
-      id: Date.now().toString(),
-      timestamp: new Date(),
-    }
     set((state) => ({
-      messages: [...state.messages, newMessage]
+      messages: [...state.messages, message]
     }))
   },
+
+  updateMessage: (messageId, updates) => {
+    set((state) => ({
+      messages: state.messages.map(msg =>
+        msg.id === messageId ? { ...msg, ...updates } : msg
+      )
+    }))
+  },
+
+  clearMessages: () => set({ messages: [] }),
   
   setMessages: (messages) => set({ messages }),
   setLoading: (isLoading) => set({ isLoading }),

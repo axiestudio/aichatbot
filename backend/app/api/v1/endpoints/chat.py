@@ -5,33 +5,32 @@ import uuid
 from datetime import datetime
 
 from app.models.chat import ChatRequest, ChatResponse, ChatMessage, ChatSession
-from app.services.enhanced_chat_service import EnhancedChatService
-from app.services.enhanced_rag_service import EnhancedRAGService
-from app.services.chat_monitoring_service import ChatMonitoringService
-from app.core.dependencies import get_current_user
+from app.services.unified_chat_service import unified_chat_service
+from app.services.rag_service import RAGService
+from app.services.unified_monitoring_service import unified_monitoring
+from app.core.dependencies import get_current_user, get_chat_service, get_rag_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/", response_model=ChatResponse)
+@router.post("/send", response_model=ChatResponse)
 async def send_message(
     request: ChatRequest,
+    chat_service = Depends(get_chat_service),
+    rag_service = Depends(get_rag_service),
     current_user: Optional[str] = Depends(get_current_user)
 ):
-    """Send a message to the chatbot and get a response with enhanced RAG"""
+    """Send a message to the chatbot and get a response with RAG support"""
     try:
         logger.info(f"Received chat request: {request.message[:50]}...")
-
-        # Initialize enhanced services
-        chat_service = EnhancedChatService()
 
         # Generate session ID if not provided
         session_id = request.session_id or str(uuid.uuid4())
 
-        # Create or get enhanced session
+        # Create or get session
         if not request.session_id:
-            session = await chat_service.create_session_enhanced(
+            session = await chat_service.create_session(
                 user_id=current_user,
                 config_id=request.config_id,
                 ip_address="127.0.0.1",  # Would get from request in real implementation
@@ -39,25 +38,24 @@ async def send_message(
             )
             session_id = session.id
 
-        # Send message with enhanced processing
-        response_data = await chat_service.send_message_enhanced(
+        # Send message with unified service
+        response_message = await chat_service.send_message(
             session_id=session_id,
             message=request.message,
-            config_id=request.config_id,
-            context_strategy="comprehensive" if request.use_rag else "none"
+            user_id=current_user
         )
 
-        logger.info(f"Generated enhanced response for session {session_id}")
+        logger.info(f"Generated response for session {session_id}")
 
         return ChatResponse(
-            response=response_data["response"],
+            response=response_message.content,
             session_id=session_id,
-            message_id=response_data["message_id"],
-            sources=response_data.get("context_metadata", {}).get("sources", []),
+            message_id=response_message.id,
+            sources=[],  # Would be populated by RAG service
             metadata={
-                "response_time": response_data["response_time"],
-                "tokens_used": response_data["tokens_used"],
-                "context_metadata": response_data.get("context_metadata", {})
+                "response_time": response_message.metadata.get("response_time", 0),
+                "tokens_used": 0,  # Would be tracked by AI service
+                "timestamp": response_message.timestamp.isoformat()
             }
         )
         

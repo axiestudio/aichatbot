@@ -34,31 +34,92 @@ class ChatSession(Base):
 
 
 class ChatMessage(Base):
-    """Chat message database model"""
+    """Enhanced chat message database model"""
     __tablename__ = "chat_messages"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     session_id = Column(UUID(as_uuid=True), ForeignKey('chat_sessions.id'), nullable=False)
-    user_message = Column(Text, nullable=False)
-    ai_response = Column(Text, nullable=False)
+    content = Column(Text, nullable=False)
+    role = Column(String(20), nullable=False)  # user, assistant, system
+    status = Column(String(20), default='sent', nullable=False)  # sending, sent, delivered, read, failed
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    edited_at = Column(DateTime, nullable=True)
+    deleted_at = Column(DateTime, nullable=True)
+    reply_to_message_id = Column(UUID(as_uuid=True), ForeignKey('chat_messages.id'), nullable=True)
     response_time = Column(Float, nullable=True)
     tokens_used = Column(Integer, default=0)
     config_used = Column(String(255), nullable=True)
     rag_context = Column(JSON, nullable=True)
     error = Column(Text, nullable=True)
     flagged = Column(Boolean, default=False)
+    metadata = Column(JSON, nullable=True)
     admin_notes = Column(Text, nullable=True)
     metadata = Column(JSON, nullable=True)
     
     # Relationships
     session = relationship("ChatSession", back_populates="messages")
-    
+    attachments = relationship("MessageAttachment", back_populates="message", cascade="all, delete-orphan")
+    reactions = relationship("MessageReaction", back_populates="message", cascade="all, delete-orphan")
+    reply_to = relationship("ChatMessage", remote_side=[id])
+
     # Indexes
     __table_args__ = (
         Index('idx_chat_messages_session_id', 'session_id'),
         Index('idx_chat_messages_timestamp', 'timestamp'),
+        Index('idx_chat_messages_role', 'role'),
+        Index('idx_chat_messages_status', 'status'),
         Index('idx_chat_messages_flagged', 'flagged'),
+    )
+
+
+class MessageAttachment(Base):
+    """Message attachment database model"""
+    __tablename__ = "message_attachments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    message_id = Column(UUID(as_uuid=True), ForeignKey('chat_messages.id'), nullable=False)
+    filename = Column(String(255), nullable=False)
+    original_filename = Column(String(255), nullable=False)
+    file_size = Column(Integer, nullable=False)
+    mime_type = Column(String(100), nullable=False)
+    attachment_type = Column(String(20), nullable=False)  # image, audio, document, video
+    file_path = Column(String(500), nullable=False)
+    file_hash = Column(String(64), nullable=False)
+    url = Column(String(500), nullable=True)
+    thumbnail_url = Column(String(500), nullable=True)
+    uploaded_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    metadata = Column(JSON, nullable=True)
+
+    # Relationships
+    message = relationship("ChatMessage", back_populates="attachments")
+
+    # Indexes
+    __table_args__ = (
+        Index('idx_message_attachments_message_id', 'message_id'),
+        Index('idx_message_attachments_type', 'attachment_type'),
+        Index('idx_message_attachments_hash', 'file_hash'),
+    )
+
+
+class MessageReaction(Base):
+    """Message reaction database model"""
+    __tablename__ = "message_reactions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    message_id = Column(UUID(as_uuid=True), ForeignKey('chat_messages.id'), nullable=False)
+    user_id = Column(String(255), nullable=False)
+    emoji = Column(String(10), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    message = relationship("ChatMessage", back_populates="reactions")
+
+    # Indexes
+    __table_args__ = (
+        Index('idx_message_reactions_message_id', 'message_id'),
+        Index('idx_message_reactions_user_id', 'user_id'),
+        Index('idx_message_reactions_emoji', 'emoji'),
+        Index('idx_message_reactions_unique', 'message_id', 'user_id', 'emoji', unique=True),
     )
 
 
@@ -308,4 +369,87 @@ class AuditLog(Base):
         Index('idx_audit_logs_user_id', 'user_id'),
         Index('idx_audit_logs_action', 'action'),
         Index('idx_audit_logs_resource', 'resource_type', 'resource_id'),
+    )
+
+
+class WebSocketConnectionDB(Base):
+    """WebSocket connection tracking"""
+    __tablename__ = "websocket_connections"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    connection_id = Column(String(255), nullable=False, unique=True)
+    session_id = Column(UUID(as_uuid=True), ForeignKey('chat_sessions.id'), nullable=False)
+    user_id = Column(String(255), nullable=True)
+    connected_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    disconnected_at = Column(DateTime, nullable=True)
+    last_activity = Column(DateTime, default=datetime.utcnow, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    metadata = Column(JSON, nullable=True)
+
+    # Relationships
+    session = relationship("ChatSession")
+
+    # Indexes
+    __table_args__ = (
+        Index('idx_websocket_connections_session_id', 'session_id'),
+        Index('idx_websocket_connections_user_id', 'user_id'),
+        Index('idx_websocket_connections_active', 'is_active'),
+        Index('idx_websocket_connections_connected_at', 'connected_at'),
+    )
+
+
+class User(Base):
+    """User database model"""
+    __tablename__ = "users"
+
+    id = Column(String(255), primary_key=True)
+    username = Column(String(100), nullable=True, unique=True)
+    email = Column(String(255), nullable=True, unique=True)
+    display_name = Column(String(255), nullable=True)
+    avatar_url = Column(String(500), nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_admin = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    last_seen = Column(DateTime, nullable=True)
+    login_count = Column(Integer, default=0, nullable=False)
+    metadata = Column(JSON, nullable=True)
+
+    # Indexes
+    __table_args__ = (
+        Index('idx_users_username', 'username'),
+        Index('idx_users_email', 'email'),
+        Index('idx_users_active', 'is_active'),
+        Index('idx_users_last_seen', 'last_seen'),
+    )
+
+
+class FileUploadDB(Base):
+    """File upload tracking"""
+    __tablename__ = "file_uploads"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(String(255), nullable=True)
+    session_id = Column(UUID(as_uuid=True), nullable=True)
+    filename = Column(String(255), nullable=False)
+    original_filename = Column(String(255), nullable=False)
+    file_size = Column(Integer, nullable=False)
+    mime_type = Column(String(100), nullable=False)
+    file_hash = Column(String(64), nullable=False, unique=True)
+    file_path = Column(String(500), nullable=False)
+    upload_status = Column(String(20), default='uploaded', nullable=False)
+    scan_status = Column(String(20), default='pending', nullable=False)
+    scan_result = Column(JSON, nullable=True)
+    uploaded_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    processed_at = Column(DateTime, nullable=True)
+    metadata = Column(JSON, nullable=True)
+
+    # Indexes
+    __table_args__ = (
+        Index('idx_file_uploads_user_id', 'user_id'),
+        Index('idx_file_uploads_hash', 'file_hash'),
+        Index('idx_file_uploads_status', 'upload_status'),
+        Index('idx_file_uploads_scan_status', 'scan_status'),
+        Index('idx_file_uploads_uploaded_at', 'uploaded_at'),
     )

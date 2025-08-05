@@ -1,4 +1,4 @@
-name: 🐳 Build and Push to Docker Hub
+name: 🚀 Production CI/CD Pipeline
 
 on:
   push:
@@ -13,15 +13,148 @@ on:
         required: true
         default: 'true'
         type: boolean
+      deploy_to_production:
+        description: 'Deploy to Production'
+        required: false
+        default: 'false'
+        type: boolean
 
 env:
   REGISTRY: docker.io
   DOCKERHUB_USERNAME: axiestudio
   REPOSITORY_NAME: aichatbot
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
 
 jobs:
+  # Frontend Testing and Quality Checks
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: 📥 Install dependencies
+      working-directory: frontend
+      run: npm ci
+
+    - name: 🔍 Type checking
+      working-directory: frontend
+      run: npm run type-check
+
+    - name: 🧹 Lint code
+      working-directory: frontend
+      run: npm run lint
+
+    - name: 🎨 Check formatting
+      working-directory: frontend
+      run: npm run format:check
+
+    - name: 🧪 Run tests
+      working-directory: frontend
+      run: npm run test:ci
+
+    - name: 📊 Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: frontend-test-results
+        path: frontend/test-results.xml
+
+  # Backend Testing and Quality Checks
+  backend-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: backend/requirements-docker.txt
+
+    - name: 📥 Install dependencies
+      working-directory: backend
+      run: |
+        pip install -r requirements-docker.txt
+        pip install pytest pytest-asyncio pytest-cov
+
+    - name: 🧪 Run tests
+      working-directory: backend
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        SECRET_KEY: test-secret-key-for-testing-only
+        ENVIRONMENT: testing
+      run: |
+        python -m pytest tests/ -v --tb=short --cov=app --cov-report=xml
+
+    - name: 📊 Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: backend/coverage.xml
+        flags: backend
+
+  # Security Scanning
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-tests]
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🔒 Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: 📊 Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Build and Push Docker Images
   build-and-push:
     runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-tests, security-scan]
+    if: github.event_name != 'pull_request'
     strategy:
       matrix:
         include:

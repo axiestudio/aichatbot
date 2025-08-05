@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import chat, config, documents, admin_enhanced
+from app.api.v1.endpoints import chat, config, documents, admin_enhanced, monitoring, websocket, errors, files, search
 
 api_router = APIRouter()
 
@@ -8,3 +8,8 @@ api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
 api_router.include_router(config.router, prefix="/config", tags=["configuration"])
 api_router.include_router(admin_enhanced.router, prefix="/admin", tags=["admin"])
 api_router.include_router(documents.router, prefix="/documents", tags=["documents"])
+api_router.include_router(monitoring.router, prefix="/monitoring", tags=["monitoring"])
+api_router.include_router(websocket.router, prefix="/realtime", tags=["websocket"])
+api_router.include_router(errors.router, prefix="/errors", tags=["errors"])
+api_router.include_router(files.router, prefix="/files", tags=["files"])
+api_router.include_router(search.router, prefix="/search", tags=["search"])

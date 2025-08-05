@@ -1,12 +1,12 @@
 from functools import lru_cache
 from typing import Optional
-from fastapi import HTTPException, Depends, status
+from fastapi import HTTPException, Depends, status, WebSocket, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import jwt
+from jose import jwt, JWTError
 from app.core.config import settings
-from app.services.enhanced_chat_service import EnhancedChatService
-from app.services.enhanced_rag_service import EnhancedRAGService
-from app.services.chat_monitoring_service import ChatMonitoringService
+from app.services.unified_chat_service import unified_chat_service
+from app.services.rag_service import RAGService
+from app.services.unified_monitoring_service import unified_monitoring
 from app.services.config_service import ConfigService
 from app.services.document_service import DocumentService
 from app.services.embedding_service import EmbeddingService
@@ -63,22 +63,38 @@ async def get_current_admin_user(
 
 
 # Service Dependencies
-@lru_cache()
-def get_enhanced_chat_service() -> EnhancedChatService:
-    """Get enhanced chat service instance"""
-    return EnhancedChatService()
+def get_chat_service():
+    """Get unified chat service instance"""
+    return unified_chat_service
 
 
 @lru_cache()
-def get_enhanced_rag_service() -> EnhancedRAGService:
-    """Get enhanced RAG service instance"""
-    return EnhancedRAGService()
+def get_rag_service() -> RAGService:
+    """Get RAG service instance"""
+    return RAGService()
 
 
-@lru_cache()
-def get_chat_monitoring_service() -> ChatMonitoringService:
-    """Get chat monitoring service instance"""
-    return ChatMonitoringService()
+def get_monitoring_service():
+    """Get unified monitoring service instance"""
+    return unified_monitoring
+
+
+async def get_current_user_ws(
+    websocket: WebSocket,
+    token: Optional[str] = Query(None)
+) -> Optional[str]:
+    """Get current user from WebSocket connection (optional authentication)"""
+    if not token:
+        return None
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+        return username
+    except jwt.JWTError:
+        return None
 
 
 @lru_cache()

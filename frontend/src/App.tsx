@@ -1,14 +1,21 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import LandingPage from './pages/LandingPage'
 import ChatInterface from './pages/ChatInterface'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminLogin from './pages/AdminLogin'
+import PublicNavigation from './components/PublicNavigation'
 import { useAuthStore } from './stores/authStore'
 
 function App() {
   const { isAuthenticated } = useAuthStore()
+  const location = useLocation()
+
+  // Show public navigation on public pages
+  const showPublicNav = ['/', '/chat'].includes(location.pathname) || location.pathname.startsWith('/chat/')
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {showPublicNav && <PublicNavigation />}
       <Routes>
         {/* Public chat interface - embeddable */}
         <Route path="/chat" element={<ChatInterface />} />
@@ -24,9 +31,9 @@ function App() {
           element={isAuthenticated ? <AdminDashboard /> : <Navigate to="/admin/login" />}
         />
 
-        {/* Default redirects */}
-        <Route path="/" element={<Navigate to="/chat" />} />
-        <Route path="*" element={<Navigate to="/chat" />} />
+        {/* Landing page */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>
   )

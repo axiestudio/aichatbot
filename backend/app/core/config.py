@@ -9,8 +9,17 @@ class Settings(BaseSettings):
     # FastAPI Configuration
     SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE-THIS-IN-PRODUCTION-MINIMUM-32-CHARACTERS")
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "production" if os.getenv("RAILWAY_ENVIRONMENT") else "development")
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+
+    # Server Configuration
+    HOST: str = os.getenv("HOST", "0.0.0.0")
+    PORT: int = int(os.getenv("PORT", "8000"))
+
+    # Railway-specific configuration
+    RAILWAY_ENVIRONMENT: Optional[str] = os.getenv("RAILWAY_ENVIRONMENT")
+    RAILWAY_PROJECT_ID: Optional[str] = os.getenv("RAILWAY_PROJECT_ID")
+    RAILWAY_SERVICE_ID: Optional[str] = os.getenv("RAILWAY_SERVICE_ID")
 
     # Security Configuration
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "CHANGE-THIS-JWT-SECRET-MINIMUM-32-CHARACTERS")
@@ -23,7 +32,7 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "admin@localhost")
     
     # Database Configuration
-    DATABASE_URL: Optional[str] = None
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/chatbot_db")
     
     # Supabase Configuration
     SUPABASE_URL: Optional[str] = None
@@ -36,6 +45,21 @@ class Settings(BaseSettings):
     
     # Redis Configuration
     REDIS_URL: str = "redis://localhost:6379"
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
+    REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
+    REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD")
+
+    # Distributed Tracing
+    JAEGER_ENDPOINT: Optional[str] = os.getenv("JAEGER_ENDPOINT")
+    JAEGER_HOST: str = os.getenv("JAEGER_HOST", "localhost")
+    JAEGER_PORT: int = int(os.getenv("JAEGER_PORT", "6831"))
+    ENABLE_TRACING: bool = os.getenv("ENABLE_TRACING", "true").lower() == "true"
+
+    # Performance & Monitoring
+    ENABLE_METRICS: bool = os.getenv("ENABLE_METRICS", "true").lower() == "true"
+    ENABLE_CACHING: bool = os.getenv("ENABLE_CACHING", "true").lower() == "true"
+    ENABLE_CIRCUIT_BREAKER: bool = os.getenv("ENABLE_CIRCUIT_BREAKER", "true").lower() == "true"
     
     # CORS Configuration
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173")
@@ -56,9 +80,21 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
     # File Upload Configuration
-    UPLOAD_DIR: str = "./uploads"
-    MAX_UPLOAD_SIZE: int = 100 * 1024 * 1024  # 100MB
-    ALLOWED_EXTENSIONS: List[str] = [".pdf", ".docx", ".doc", ".txt", ".md", ".html", ".csv", ".xlsx", ".json"]
+    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "./uploads")
+    MAX_FILE_SIZE: int = int(os.getenv("MAX_FILE_SIZE", str(10 * 1024 * 1024)))  # 10MB default
+    MAX_UPLOAD_SIZE: int = 100 * 1024 * 1024  # 100MB total
+    ALLOWED_EXTENSIONS: List[str] = [".pdf", ".docx", ".doc", ".txt", ".md", ".html", ".csv", ".xlsx", ".json", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".mp3", ".wav", ".ogg"]
+
+    # Security Scanning Configuration
+    ENABLE_VIRUS_SCANNING: bool = os.getenv("ENABLE_VIRUS_SCANNING", "true").lower() == "true"
+    CLAMAV_HOST: str = os.getenv("CLAMAV_HOST", "localhost")
+    CLAMAV_PORT: int = int(os.getenv("CLAMAV_PORT", "3310"))
+    QUARANTINE_DIR: str = os.getenv("QUARANTINE_DIR", "./quarantine")
+
+    # WebSocket Configuration
+    WS_HEARTBEAT_INTERVAL: int = int(os.getenv("WS_HEARTBEAT_INTERVAL", "30"))
+    WS_MAX_CONNECTIONS: int = int(os.getenv("WS_MAX_CONNECTIONS", "1000"))
+    WS_MESSAGE_RATE_LIMIT: int = int(os.getenv("WS_MESSAGE_RATE_LIMIT", "60"))  # messages per minute
 
     # Storage Configuration
     STORAGE_TYPE: str = "local"  # local, s3, minio, azure
@@ -99,9 +135,20 @@ class Settings(BaseSettings):
     EMBEDDING_DIMENSION: int = 384
 
     # Security Configuration
-    JWT_SECRET_KEY: str = "jwt-secret-key-change-in-production"
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "jwt-secret-key-change-in-production-minimum-32-characters")
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", SECRET_KEY)
+    ALGORITHM: str = "HS256"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
+    # Rate Limiting Configuration
+    RATE_LIMIT_REQUESTS: int = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
+    RATE_LIMIT_WINDOW: int = int(os.getenv("RATE_LIMIT_WINDOW", "60"))  # seconds
+
+    # Error Tracking Configuration
+    ENABLE_ERROR_TRACKING: bool = os.getenv("ENABLE_ERROR_TRACKING", "true").lower() == "true"
+    SENTRY_DSN: Optional[str] = os.getenv("SENTRY_DSN")
+    ERROR_RETENTION_DAYS: int = int(os.getenv("ERROR_RETENTION_DAYS", "30"))
 
     # Monitoring Configuration
     ENABLE_METRICS: bool = True
