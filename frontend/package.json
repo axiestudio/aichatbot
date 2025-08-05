@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc && vite build",
+    "build:debug": "tsc --noEmit --listFiles > tsc-output.log 2>&1 || echo 'TSC failed' && vite build --logLevel info",
     "build:prod": "NODE_ENV=production tsc && vite build --mode production",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",

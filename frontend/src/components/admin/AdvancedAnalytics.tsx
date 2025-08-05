@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
-import { ProgressBar } from '../ui/ProgressBar';
+import Card from '../ui/Card';
+import Button from '../ui/Button';
+import Badge from '../ui/Badge';
+import ProgressBar from '../ui/ProgressBar';
 
 interface AnalyticsData {
   chat_metrics: {
