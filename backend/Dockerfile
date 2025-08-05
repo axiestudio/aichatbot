@@ -11,6 +11,15 @@ ENV PYTHONUNBUFFERED=1 \
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    git \
+    pkg-config \
+    libpq-dev \
+    gcc \
+    g++ \
+    libc6-dev \
+    libffi-dev \
+    libssl-dev \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -20,10 +29,11 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 WORKDIR /app
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY requirements-docker.txt ./requirements.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Upgrade pip and install Python dependencies
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Development stage
 FROM base as development
