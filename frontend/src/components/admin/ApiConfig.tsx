@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { Eye, EyeOff, Save, TestTube, CheckCircle, XCircle } from 'lucide-react'
+import { Eye, EyeOff, Save, TestTube, CheckCircle, XCircle, Plus, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { ApiConfig as ApiConfigType } from '../../types'
 
@@ -17,37 +17,108 @@ const defaultConfig: ApiConfigType = {
 }
 
 export default function ApiConfig() {
-  const [config, setConfig] = useState<ApiConfigType>(defaultConfig)
+  const [configs, setConfigs] = useState<ApiConfigType[]>([])
+  const [activeConfig, setActiveConfig] = useState<ApiConfigType | null>(null)
   const [showApiKey, setShowApiKey] = useState(false)
   const [isTestingConnection, setIsTestingConnection] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<ApiConfigType>({
-    defaultValues: config
+  const [isLoading, setIsLoading] = useState(true)
+  const [showCreateForm, setShowCreateForm] = useState(false)
+
+  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<ApiConfigType>({
+    defaultValues: defaultConfig
   })
 
   const watchedProvider = watch('provider')
 
+  // Load configurations on component mount
+  useEffect(() => {
+    loadConfigurations()
+  }, [])
+
+  const loadConfigurations = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/v1/admin/api-config/configs', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setConfigs(data)
+        const active = data.find((config: ApiConfigType) => config.isActive)
+        if (active) {
+          setActiveConfig(active)
+          reset(active)
+        }
+      } else {
+        toast.error('Failed to load API configurations')
+      }
+    } catch (error) {
+      toast.error('Error loading configurations')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const onSubmit = async (data: ApiConfigType) => {
     try {
-      // In a real app, this would save to backend
-      setConfig(data)
-      toast.success('API configuration saved successfully!')
+      const url = activeConfig
+        ? `/api/v1/admin/api-config/configs/${activeConfig.id}`
+        : '/api/v1/admin/api-config/configs'
+
+      const method = activeConfig ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({
+          name: data.name || `${data.provider} Configuration`,
+          provider: data.provider,
+          api_key: data.apiKey,
+          model: data.model,
+          temperature: data.temperature,
+          max_tokens: data.maxTokens,
+          top_p: data.topP || 1.0,
+          frequency_penalty: data.frequencyPenalty || 0.0,
+          presence_penalty: data.presencePenalty || 0.0
+        })
+      })
+
+      if (response.ok) {
+        toast.success(`API configuration ${activeConfig ? 'updated' : 'created'} successfully!`)
+        setShowCreateForm(false)
+        loadConfigurations()
+      } else {
+        const error = await response.json()
+        toast.error(error.detail || 'Failed to save configuration')
+      }
     } catch (error) {
       toast.error('Failed to save API configuration')
     }
   }
 
   const testConnection = async () => {
+    if (!activeConfig) return
+
     setIsTestingConnection(true)
     setConnectionStatus('idle')
-    
+
     try {
-      // Simulate API test
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // In a real app, this would test the actual API connection
-      const success = Math.random() > 0.3 // 70% success rate for demo
+      const response = await fetch(`/api/v1/admin/api-config/configs/${activeConfig.id}/test`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      })
+
+      const result = await response.json()
+      const success = result.status === 'success'
       
       if (success) {
         setConnectionStatus('success')

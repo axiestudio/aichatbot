@@ -9,6 +9,8 @@ from app.services.unified_chat_service import unified_chat_service
 from app.services.rag_service import RAGService
 from app.services.unified_monitoring_service import unified_monitoring
 from app.core.dependencies import get_current_user, get_chat_service, get_rag_service
+from app.core.database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -19,7 +21,8 @@ async def send_message(
     request: ChatRequest,
     chat_service = Depends(get_chat_service),
     rag_service = Depends(get_rag_service),
-    current_user: Optional[str] = Depends(get_current_user)
+    current_user: Optional[str] = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """Send a message to the chatbot and get a response with RAG support"""
     try:
@@ -42,7 +45,8 @@ async def send_message(
         response_message = await chat_service.send_message(
             session_id=session_id,
             message=request.message,
-            user_id=current_user
+            user_id=current_user,
+            db=db
         )
 
         logger.info(f"Generated response for session {session_id}")

@@ -11,11 +11,16 @@ from typing import List, Optional, Dict, Any, Union
 from datetime import datetime, timedelta
 
 from app.models.chat import ChatSession, ChatMessage, ChatConfig
+from app.models.database import ApiConfiguration, RagInstruction
 from app.services.advanced_cache_service import cache_service, cached, CacheConfig
 from app.services.circuit_breaker_service import circuit_breaker, CircuitBreakerConfig
 from app.services.performance_monitoring_service import performance_service, performance_monitor
 from app.services.error_tracking_service import error_tracker
 from app.core.config import settings
+from app.core.database import get_db
+from sqlalchemy.orm import Session
+import openai
+import anthropic
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +80,46 @@ class UnifiedChatService:
             updated_at=datetime.utcnow()
         )
         self.configs["default"] = default_config
+
+    def _get_active_api_config(self, db: Session) -> ApiConfiguration:
+        """Get active API configuration from database"""
+        config = db.query(ApiConfiguration).filter(ApiConfiguration.is_active == True).first()
+        if not config:
+            # Create default config if none exists
+            config = ApiConfiguration(
+                id="default",
+                name="Default OpenAI",
+                provider="openai",
+                api_key=settings.OPENAI_API_KEY or "your-api-key-here",
+                model="gpt-3.5-turbo",
+                temperature=0.7,
+                max_tokens=1000,
+                is_active=True
+            )
+            db.add(config)
+            db.commit()
+            db.refresh(config)
+        return config
+
+    def _get_active_rag_config(self, db: Session) -> RagInstruction:
+        """Get active RAG instruction from database"""
+        config = db.query(RagInstruction).filter(RagInstruction.is_active == True).first()
+        if not config:
+            # Create default config if none exists
+            config = RagInstruction(
+                id="default",
+                name="Default RAG",
+                system_prompt="You are a helpful AI assistant. Use the provided context to answer questions accurately.",
+                context_prompt="Context: {context}\n\nQuestion: {question}",
+                max_context_length=2000,
+                search_limit=5,
+                similarity_threshold=0.7,
+                is_active=True
+            )
+            db.add(config)
+            db.commit()
+            db.refresh(config)
+        return config
     
     @performance_monitor("chat.create_session")
     @cached(key_prefix="chat_session", ttl=3600)
@@ -151,7 +196,8 @@ class UnifiedChatService:
         session_id: str,
         message: str,
         user_id: Optional[str] = None,
-        message_type: str = "user"
+        message_type: str = "user",
+        db: Session = None
     ) -> ChatMessage:
         """Send a message and get AI response with full monitoring"""
         
@@ -181,9 +227,13 @@ class UnifiedChatService:
             session.messages.append(user_message)
             session.updated_at = datetime.utcnow()
             
+            # Get database session if not provided
+            if db is None:
+                db = next(get_db())
+
             # Generate AI response with caching
             response_content = await self._generate_ai_response(
-                session_id, message, session.messages
+                session_id, message, session.messages, db
             )
             
             # Create assistant message
@@ -247,32 +297,102 @@ class UnifiedChatService:
         self,
         session_id: str,
         message: str,
-        conversation_history: List[ChatMessage]
+        conversation_history: List[ChatMessage],
+        db: Session
     ) -> str:
-        """Generate AI response with caching and circuit breaker protection"""
-        
+        """Generate AI response using configured API provider"""
+
         try:
-            # This is a simplified implementation
-            # In production, this would integrate with OpenAI, Anthropic, etc.
-            
-            # Simulate AI processing time
-            await asyncio.sleep(0.1)
-            
+            # Get active API configuration
+            api_config = self._get_active_api_config(db)
+            rag_config = self._get_active_rag_config(db)
+
             # Build context from conversation history
             context_messages = []
+
+            # Add system prompt from RAG config
+            context_messages.append({
+                "role": "system",
+                "content": rag_config.system_prompt
+            })
+
+            # Add conversation history
             for msg in conversation_history[-10:]:  # Last 10 messages for context
                 context_messages.append({
                     "role": msg.role,
                     "content": msg.content
                 })
-            
+
             # Add current message
             context_messages.append({
                 "role": "user",
                 "content": message
             })
-            
-            # Generate response (placeholder implementation)
+
+            # Generate response using configured provider
+            if api_config.provider.lower() == "openai":
+                return await self._generate_openai_response(api_config, context_messages)
+            elif api_config.provider.lower() == "anthropic":
+                return await self._generate_anthropic_response(api_config, context_messages)
+            else:
+                return f"I'm sorry, but the configured AI provider '{api_config.provider}' is not supported yet."
+
+        except Exception as e:
+            logger.error(f"Error generating AI response: {str(e)}")
+            return "I'm sorry, I encountered an error while processing your request. Please try again."
+
+    async def _generate_openai_response(self, api_config: ApiConfiguration, messages: List[dict]) -> str:
+        """Generate response using OpenAI API"""
+        try:
+            client = openai.AsyncOpenAI(api_key=api_config.api_key)
+
+            response = await client.chat.completions.create(
+                model=api_config.model,
+                messages=messages,
+                temperature=api_config.temperature,
+                max_tokens=api_config.max_tokens,
+                top_p=api_config.top_p,
+                frequency_penalty=api_config.frequency_penalty,
+                presence_penalty=api_config.presence_penalty
+            )
+
+            return response.choices[0].message.content
+
+        except Exception as e:
+            logger.error(f"OpenAI API error: {str(e)}")
+            return f"OpenAI API error: {str(e)}"
+
+    async def _generate_anthropic_response(self, api_config: ApiConfiguration, messages: List[dict]) -> str:
+        """Generate response using Anthropic API"""
+        try:
+            client = anthropic.AsyncAnthropic(api_key=api_config.api_key)
+
+            # Convert messages format for Anthropic
+            system_message = ""
+            anthropic_messages = []
+
+            for msg in messages:
+                if msg["role"] == "system":
+                    system_message = msg["content"]
+                else:
+                    anthropic_messages.append({
+                        "role": msg["role"],
+                        "content": msg["content"]
+                    })
+
+            response = await client.messages.create(
+                model=api_config.model,
+                max_tokens=api_config.max_tokens,
+                temperature=api_config.temperature,
+                system=system_message,
+                messages=anthropic_messages
+            )
+
+            return response.content[0].text
+
+        except Exception as e:
+            logger.error(f"Anthropic API error: {str(e)}")
+            return f"Anthropic API error: {str(e)}"
             response = f"I understand you said: '{message}'. How can I help you further?"
             
             return response

@@ -9,6 +9,7 @@ from app.services.enhanced_rag_service import EnhancedRAGService
 from app.services.document_service import DocumentService
 from app.core.dependencies import get_current_user
 from app.core.database import DatabaseUtils
+from app.api.admin import api_config, rag_config, supabase
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -459,3 +460,9 @@ async def export_analytics(
     except Exception as e:
         logger.error(f"Error exporting analytics: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+
+# Include configuration sub-routers
+router.include_router(api_config.router, prefix="", tags=["admin-api-config"])
+router.include_router(rag_config.router, prefix="", tags=["admin-rag-config"])
+router.include_router(supabase.router, prefix="", tags=["admin-supabase"])
