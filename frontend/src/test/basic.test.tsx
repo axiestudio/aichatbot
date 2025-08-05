@@ -22,7 +22,7 @@ describe('Basic Tests', () => {
   })
 
   it('should handle object operations', () => {
-    const testObj = { key: 'value' }
+    const testObj: any = { key: 'value' }
     expect(testObj.key).toBe('value')
     testObj.newKey = 'new value'
     expect(Object.keys(testObj).length).toBe(2)
