@@ -5,8 +5,9 @@
   "scripts": {
     "install-all": "cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
     "dev": "concurrently \"cd backend && python start.py\" \"cd frontend && npm run dev\"",
-    "build": "cd frontend && npm run build",
-    "start": "cd backend && python start.py"
+    "build": "cd frontend && npm ci && npm run build",
+    "start": "cd backend && python start.py",
+    "postinstall": "cd frontend && npm ci"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
