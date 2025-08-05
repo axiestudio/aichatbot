@@ -1,0 +1,17 @@
+{
+  "name": "modern-chatbot-system",
+  "version": "1.0.0",
+  "description": "A comprehensive chatbot solution with React frontend and Python backend",
+  "scripts": {
+    "install-all": "cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
+    "dev": "concurrently \"cd backend && python start.py\" \"cd frontend && npm run dev\"",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && python start.py"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["chatbot", "react", "fastapi", "rag", "ai"],
+  "author": "",
+  "license": "MIT"
+}

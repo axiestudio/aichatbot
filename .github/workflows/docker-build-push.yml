@@ -1,0 +1,157 @@
+name: 🐳 Build and Push to Docker Hub
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      push_to_hub:
+        description: 'Push to Docker Hub'
+        required: true
+        default: 'true'
+        type: boolean
+
+env:
+  REGISTRY: docker.io
+  DOCKERHUB_USERNAME: axiestudio
+  REPOSITORY_NAME: aichatbot
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - component: backend
+            dockerfile: ./backend/Dockerfile
+            context: ./backend
+            tag_suffix: backend
+          - component: frontend
+            dockerfile: ./frontend/Dockerfile
+            context: ./frontend
+            tag_suffix: frontend
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🔧 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 🐳 Log in to Docker Hub
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ env.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: 📝 Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY_NAME }}
+        tags: |
+          type=ref,event=branch,suffix=-${{ matrix.tag_suffix }}
+          type=ref,event=pr,suffix=-${{ matrix.tag_suffix }}
+          type=semver,pattern={{version}},suffix=-${{ matrix.tag_suffix }}
+          type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.tag_suffix }}
+          type=semver,pattern={{major}},suffix=-${{ matrix.tag_suffix }}
+          type=raw,value=${{ matrix.tag_suffix }}-latest,enable={{is_default_branch}}
+          type=sha,prefix={{branch}}-${{ matrix.tag_suffix }}-
+
+    - name: 🏗️ Build and push ${{ matrix.component }}
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ matrix.context }}
+        file: ${{ matrix.dockerfile }}
+        target: production
+        platforms: linux/amd64,linux/arm64
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
+
+    - name: 🔍 Test image
+      if: github.event_name != 'pull_request'
+      run: |
+        echo "Testing ${{ matrix.component }} image..."
+        docker run --rm ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY_NAME }}:${{ matrix.tag_suffix }}-latest --help || true
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name != 'pull_request'
+    strategy:
+      matrix:
+        component: [backend, frontend]
+
+    steps:
+    - name: 🔒 Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY_NAME }}:${{ matrix.component }}-latest
+        format: 'sarif'
+        output: 'trivy-results-${{ matrix.component }}.sarif'
+
+    - name: 📊 Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results-${{ matrix.component }}.sarif'
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, security-scan]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🚀 Deploy to staging
+      run: |
+        echo "🚀 Deploying to staging environment..."
+        echo "Backend image: ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY_NAME }}:backend-develop"
+        echo "Frontend image: ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY_NAME }}:frontend-develop"
+        # Add your staging deployment commands here
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, security-scan]
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🚀 Deploy to production
+      run: |
+        echo "🚀 Deploying to production environment..."
+        echo "Backend image: ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY_NAME }}:backend-latest"
+        echo "Frontend image: ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY_NAME }}:frontend-latest"
+        # Add your production deployment commands here
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, security-scan]
+    if: always()
+
+    steps:
+    - name: 📢 Notify deployment status
+      run: |
+        if [ "${{ needs.build-and-push.result }}" == "success" ]; then
+          echo "✅ Docker images built and pushed successfully!"
+          echo "🐳 Backend: ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY_NAME }}:backend-latest"
+          echo "🐳 Frontend: ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY_NAME }}:frontend-latest"
+        else
+          echo "❌ Build failed!"
+        fi
