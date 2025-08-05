@@ -51,7 +51,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const { addMessage, config } = get()
     
     // Add user message
-    addMessage({ content, role: 'user' })
+    addMessage({
+      id: `msg-${Date.now()}-user`,
+      session_id: 'default',
+      content,
+      role: 'user',
+      timestamp: new Date(),
+      status: 'sent',
+      attachments: [],
+      reactions: [],
+      metadata: {}
+    })
     set({ isLoading: true })
     
     try {
@@ -75,9 +85,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const data = await response.json()
       
       // Add assistant response
-      addMessage({ 
-        content: data.response, 
-        role: 'assistant' 
+      addMessage({
+        id: `msg-${Date.now()}-assistant`,
+        session_id: data.sessionId || 'default',
+        content: data.response,
+        role: 'assistant',
+        timestamp: new Date(),
+        status: 'sent',
+        attachments: [],
+        reactions: [],
+        metadata: {}
       })
       
       // Update session ID if provided
@@ -87,9 +104,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
       
     } catch (error) {
       console.error('Error sending message:', error)
-      addMessage({ 
-        content: 'Sorry, I encountered an error. Please try again.', 
-        role: 'assistant' 
+      addMessage({
+        id: `msg-${Date.now()}-error`,
+        session_id: 'default',
+        content: 'Sorry, I encountered an error. Please try again.',
+        role: 'assistant',
+        timestamp: new Date(),
+        status: 'sent',
+        attachments: [],
+        reactions: [],
+        metadata: {}
       })
     } finally {
       set({ isLoading: false })

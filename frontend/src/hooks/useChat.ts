@@ -30,7 +30,7 @@ export interface Message {
   id: string
   session_id: string
   content: string
-  role: 'user' | 'assistant' | 'system'
+  role: 'user' | 'assistant'
   timestamp: Date
   status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed'
   attachments: MessageAttachment[]

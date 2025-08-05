@@ -45,8 +45,15 @@ export default function ChatInterface() {
     // Add welcome message if no messages exist
     if (messages.length === 0) {
       addMessage({
+        id: `msg-${Date.now()}`,
+        session_id: 'default',
         content: defaultConfig.welcomeMessage,
-        role: 'assistant'
+        role: 'assistant',
+        timestamp: new Date(),
+        status: 'sent',
+        attachments: [],
+        reactions: [],
+        metadata: {}
       })
     }
   }, [configId, setConfig, addMessage, messages.length])
@@ -118,9 +125,14 @@ export default function ChatInterface() {
                 <ChatMessage
                   message={{
                     id: 'typing',
+                    session_id: 'default',
                     content: '',
                     role: 'assistant',
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    status: 'sending',
+                    attachments: [],
+                    reactions: [],
+                    metadata: {}
                   }}
                   isTyping={true}
                 />
