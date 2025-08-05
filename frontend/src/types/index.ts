@@ -57,11 +57,15 @@ export interface ChatConfig {
 
 export interface ApiConfig {
   id: string;
+  name?: string;
   provider: 'openai' | 'anthropic' | 'custom';
   apiKey: string;
   model: string;
   temperature: number;
   maxTokens: number;
+  topP?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

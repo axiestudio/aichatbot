@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Settings } from 'lucide-react';
-import ChatInterface from '../components/ChatInterface';
+import ChatInterface from './ChatInterface';
 
 export default function LandingPage() {
   const [isEmbedded, setIsEmbedded] = useState(false);

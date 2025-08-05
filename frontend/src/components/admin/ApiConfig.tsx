@@ -6,11 +6,15 @@ import { ApiConfig as ApiConfigType } from '../../types'
 
 const defaultConfig: ApiConfigType = {
   id: 'default',
+  name: 'Default Configuration',
   provider: 'openai',
   apiKey: '',
   model: 'gpt-3.5-turbo',
   temperature: 0.7,
   maxTokens: 1000,
+  topP: 1.0,
+  frequencyPenalty: 0.0,
+  presencePenalty: 0.0,
   isActive: false,
   createdAt: new Date(),
   updatedAt: new Date(),
