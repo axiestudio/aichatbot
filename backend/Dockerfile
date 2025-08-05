@@ -1,5 +1,5 @@
 # Multi-stage production Dockerfile for FastAPI backend
-FROM python:3.11-slim as base
+FROM python:3.11-slim-bullseye as base
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
