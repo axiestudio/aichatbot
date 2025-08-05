@@ -356,7 +356,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 )}
               </button>
             </div>
-          </form>
+          </div>
+        </form>
 
           {/* Input Hints */}
           <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
