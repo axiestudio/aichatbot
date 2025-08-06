@@ -466,3 +466,7 @@ async def export_analytics(
 router.include_router(api_config.router, prefix="", tags=["admin-api-config"])
 router.include_router(rag_config.router, prefix="", tags=["admin-rag-config"])
 router.include_router(supabase.router, prefix="", tags=["admin-supabase"])
+
+# Include live configuration router
+from ...admin.live_config import router as live_config_router
+router.include_router(live_config_router, prefix="", tags=["admin-live-config"])

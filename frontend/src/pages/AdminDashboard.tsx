@@ -8,9 +8,17 @@ import SupabaseConfig from '../components/admin/SupabaseConfig'
 import RagInstructions from '../components/admin/RagInstructions'
 import Analytics from '../components/admin/Analytics'
 import { DocumentManager } from '../components/admin/DocumentManager'
+import LiveConfiguration from '../components/admin/LiveConfiguration'
+import SystemMonitoring from '../components/admin/SystemMonitoring'
+import AIInsightsDashboard from '../components/admin/AIInsightsDashboard'
+import IntelligenceDashboard from '../components/admin/IntelligenceDashboard'
 
 const navigation = [
   { name: 'Overview', href: '/admin', description: 'Dashboard and system status' },
+  { name: 'AI Insights', href: '/admin/ai-insights', description: 'AI-powered analytics and predictions' },
+  { name: 'Intelligence Hub', href: '/admin/intelligence', description: 'Conversation, content & knowledge intelligence' },
+  { name: 'Live Configuration', href: '/admin/live-config', description: 'Real-time chat interface settings' },
+  { name: 'System Monitoring', href: '/admin/monitoring', description: 'Real-time system health and performance' },
   { name: 'Chat Design', href: '/admin/design', description: 'Customize chat appearance' },
   { name: 'API Configuration', href: '/admin/api', description: 'AI provider settings' },
   { name: 'Supabase Setup', href: '/admin/supabase', description: 'Database integration' },
@@ -161,6 +169,10 @@ export default function AdminDashboard() {
           <div className="p-6">
             <Routes>
               <Route path="/" element={<DashboardOverview />} />
+              <Route path="/ai-insights" element={<AIInsightsDashboard />} />
+              <Route path="/intelligence" element={<IntelligenceDashboard />} />
+              <Route path="/live-config" element={<LiveConfiguration />} />
+              <Route path="/monitoring" element={<SystemMonitoring />} />
               <Route path="/design" element={<ChatDesign />} />
               <Route path="/api" element={<ApiConfig />} />
               <Route path="/supabase" element={<SupabaseConfig />} />

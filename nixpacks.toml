@@ -1,14 +1,17 @@
 [phases.setup]
-nixPkgs = ["nodejs_18"]
+nixPkgs = ["python311", "nodejs-18_x", "postgresql"]
 
 [phases.install]
-cmds = ["cd frontend && npm install"]
+cmds = [
+    "cd backend && pip install -r requirements.txt",
+    "cd frontend && npm ci && npm run build"
+]
 
 [phases.build]
-cmds = ["cd frontend && npm run build"]
+cmds = ["echo 'Build completed'"]
 
 [start]
-cmd = "cd frontend && npm run start"
+cmd = "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 
 [variables]
 NODE_ENV = "production"

@@ -232,8 +232,9 @@ class ChatConfiguration(Base):
 class ApiConfiguration(Base):
     """API configuration database model"""
     __tablename__ = "api_configurations"
-    
+
     id = Column(String(255), primary_key=True)
+    instance_id = Column(String(255), ForeignKey('chat_instances.id'), nullable=True)  # NULL for global configs
     name = Column(String(255), nullable=False)
     provider = Column(String(50), nullable=False)  # openai, anthropic, etc.
     api_key = Column(String(500), nullable=False)  # Encrypted
@@ -251,8 +252,9 @@ class ApiConfiguration(Base):
 class RagInstruction(Base):
     """RAG instruction database model"""
     __tablename__ = "rag_instructions"
-    
+
     id = Column(String(255), primary_key=True)
+    instance_id = Column(String(255), ForeignKey('chat_instances.id'), nullable=True)  # NULL for global configs
     name = Column(String(255), nullable=False)
     system_prompt = Column(Text, nullable=False)
     context_prompt = Column(Text, nullable=False)
@@ -287,6 +289,158 @@ class SupabaseConfiguration(Base):
 
 # Alias for backward compatibility
 SupabaseConfig = SupabaseConfiguration
+
+
+class ChatInstance(Base):
+    """Chat instance model for multi-tenancy"""
+    __tablename__ = "chat_instances"
+
+    id = Column(String(255), primary_key=True)
+    name = Column(String(255), nullable=False)
+    subdomain = Column(String(100), unique=True, nullable=False)  # e.g., 'company1'
+    domain = Column(String(255), nullable=True)  # Custom domain
+    description = Column(Text, nullable=True)
+
+    # Owner information
+    owner_email = Column(String(255), nullable=False)
+    owner_name = Column(String(255), nullable=False)
+
+    # Instance settings
+    is_active = Column(Boolean, default=True)
+    max_monthly_messages = Column(Integer, default=1000)
+    current_monthly_messages = Column(Integer, default=0)
+
+    # Branding
+    logo_url = Column(String(500), nullable=True)
+    primary_color = Column(String(7), default="#3b82f6")
+    secondary_color = Column(String(7), default="#e5e7eb")
+
+    # Billing
+    plan_type = Column(String(50), default="free")  # free, pro, enterprise
+    billing_email = Column(String(255), nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
+class InstanceAdmin(Base):
+    """Instance admin users"""
+    __tablename__ = "instance_admins"
+
+    id = Column(String(255), primary_key=True)
+    instance_id = Column(String(255), ForeignKey('chat_instances.id'), nullable=False)
+    email = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=False)
+
+    # Permissions
+    role = Column(String(50), default="admin")  # admin, viewer
+    permissions = Column(JSON, nullable=True)
+
+    # Status
+    is_active = Column(Boolean, default=True)
+    last_login = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
+class SuperAdmin(Base):
+    """Super admin users who can manage all instances"""
+    __tablename__ = "super_admins"
+
+    id = Column(String(255), primary_key=True)
+    email = Column(String(255), unique=True, nullable=False)
+    name = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=False)
+
+    # Super admin permissions
+    can_create_instances = Column(Boolean, default=True)
+    can_delete_instances = Column(Boolean, default=True)
+    can_manage_billing = Column(Boolean, default=True)
+    can_view_all_analytics = Column(Boolean, default=True)
+
+    # Status
+    is_active = Column(Boolean, default=True)
+    last_login = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
+class LiveConfiguration(Base):
+    """Live configuration that updates chat interface in real-time"""
+    __tablename__ = "live_configurations"
+
+    id = Column(String(255), primary_key=True)
+    instance_id = Column(String(255), ForeignKey('chat_instances.id'), nullable=False)
+
+    # Chat Interface Configuration
+    chat_title = Column(String(255), default="AI Assistant")
+    chat_subtitle = Column(String(255), default="How can I help you today?")
+    welcome_message = Column(Text, default="Hello! How can I assist you today?")
+    placeholder_text = Column(String(255), default="Type your message...")
+
+    # Visual Configuration
+    primary_color = Column(String(7), default="#3b82f6")
+    secondary_color = Column(String(7), default="#e5e7eb")
+    accent_color = Column(String(7), default="#10b981")
+    background_color = Column(String(7), default="#ffffff")
+    text_color = Column(String(7), default="#1f2937")
+
+    # Branding
+    logo_url = Column(String(500), nullable=True)
+    company_name = Column(String(255), nullable=True)
+    show_branding = Column(Boolean, default=True)
+    custom_css = Column(Text, nullable=True)
+
+    # Behavior Configuration
+    typing_indicator = Column(Boolean, default=True)
+    sound_enabled = Column(Boolean, default=False)
+    auto_scroll = Column(Boolean, default=True)
+    message_timestamps = Column(Boolean, default=True)
+
+    # Chat Features
+    file_upload_enabled = Column(Boolean, default=True)
+    max_file_size_mb = Column(Integer, default=10)
+    allowed_file_types = Column(JSON, default=lambda: ["pdf", "txt", "docx", "jpg", "png"])
+
+    # Rate Limiting
+    messages_per_minute = Column(Integer, default=10)
+    messages_per_hour = Column(Integer, default=100)
+
+    # Advanced Features
+    conversation_starters = Column(JSON, default=lambda: [])
+    quick_replies = Column(JSON, default=lambda: [])
+    custom_fields = Column(JSON, default=lambda: {})
+
+    # Status
+    is_active = Column(Boolean, default=True)
+    last_updated_by = Column(String(255), nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
+class ConfigurationHistory(Base):
+    """Track configuration changes for audit and rollback"""
+    __tablename__ = "configuration_history"
+
+    id = Column(String(255), primary_key=True)
+    instance_id = Column(String(255), ForeignKey('chat_instances.id'), nullable=False)
+    configuration_id = Column(String(255), ForeignKey('live_configurations.id'), nullable=False)
+
+    # Change tracking
+    changed_by = Column(String(255), nullable=False)  # Admin ID
+    change_type = Column(String(50), nullable=False)  # create, update, delete
+    changes = Column(JSON, nullable=False)  # What changed
+    previous_values = Column(JSON, nullable=True)  # Previous values
+
+    # Metadata
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
 class SecurityEvent(Base):

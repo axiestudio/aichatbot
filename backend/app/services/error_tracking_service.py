@@ -14,6 +14,7 @@ import asyncio
 import hashlib
 
 from app.core.config import settings
+from .cache_service import cache_service
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,24 @@ class ErrorTrackingService:
             'critical_error_rate': 5,
             'unique_errors_threshold': 20
         }
+
+        # Recovery mechanisms
+        self.recovery_strategies = {
+            'database_error': self._recover_database_connection,
+            'redis_error': self._recover_redis_connection,
+            'api_error': self._recover_api_connection,
+            'websocket_error': self._recover_websocket_connection,
+            'memory_error': self._recover_memory_pressure,
+            'timeout_error': self._recover_timeout_issues
+        }
+
+        # Circuit breaker states
+        self.circuit_breakers = defaultdict(lambda: {
+            'state': 'closed',  # closed, open, half_open
+            'failure_count': 0,
+            'last_failure_time': None,
+            'success_count': 0
+        })
         
     def track_error(
         self,
@@ -214,6 +233,84 @@ class ErrorTrackingService:
             del self.error_cache[error_id]
         
         logger.info(f"Cleaned up {len(errors_to_remove)} old error records")
+
+    async def attempt_recovery(self, error_type: str, context: Dict[str, Any] = None) -> bool:
+        """Attempt automatic recovery for known error types"""
+        try:
+            if error_type in self.recovery_strategies:
+                recovery_func = self.recovery_strategies[error_type]
+                success = await recovery_func(context or {})
+
+                if success:
+                    logger.info(f"✅ Successfully recovered from {error_type}")
+                    await self._reset_circuit_breaker(error_type)
+                    return True
+                else:
+                    logger.warning(f"❌ Failed to recover from {error_type}")
+                    await self._trip_circuit_breaker(error_type)
+                    return False
+            else:
+                logger.warning(f"No recovery strategy for error type: {error_type}")
+                return False
+
+        except Exception as e:
+            logger.error(f"Recovery attempt failed for {error_type}: {e}")
+            return False
+
+    async def _recover_database_connection(self, context: Dict[str, Any]) -> bool:
+        """Recover database connection issues"""
+        try:
+            from app.core.database import get_db
+            from sqlalchemy import text
+
+            # Test database connection
+            db = next(get_db())
+            db.execute(text("SELECT 1")).scalar()
+
+            logger.info("Database connection recovered")
+            return True
+
+        except Exception as e:
+            logger.error(f"Database recovery failed: {e}")
+            return False
+
+    async def _recover_redis_connection(self, context: Dict[str, Any]) -> bool:
+        """Recover Redis connection issues"""
+        try:
+            # Reinitialize cache service
+            await cache_service.initialize()
+
+            # Test Redis connection
+            test_key = "recovery_test"
+            await cache_service.set(test_key, "test", "default", 10)
+            result = await cache_service.get(test_key, "default")
+
+            if result == "test":
+                await cache_service.delete(test_key, "default")
+                logger.info("Redis connection recovered")
+                return True
+            else:
+                return False
+
+        except Exception as e:
+            logger.error(f"Redis recovery failed: {e}")
+            return False
+
+    async def _trip_circuit_breaker(self, service: str):
+        """Trip circuit breaker for a service"""
+        self.circuit_breakers[service]['state'] = 'open'
+        self.circuit_breakers[service]['failure_count'] += 1
+        self.circuit_breakers[service]['last_failure_time'] = datetime.utcnow()
+
+        logger.warning(f"🔴 Circuit breaker OPEN for {service}")
+
+    async def _reset_circuit_breaker(self, service: str):
+        """Reset circuit breaker for a service"""
+        self.circuit_breakers[service]['state'] = 'closed'
+        self.circuit_breakers[service]['failure_count'] = 0
+        self.circuit_breakers[service]['success_count'] += 1
+
+        logger.info(f"🟢 Circuit breaker CLOSED for {service}")
 
 
 # Global error tracking instance

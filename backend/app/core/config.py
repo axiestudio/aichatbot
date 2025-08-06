@@ -58,6 +58,35 @@ class Settings(BaseSettings):
 
     # Performance & Monitoring
     ENABLE_METRICS: bool = os.getenv("ENABLE_METRICS", "true").lower() == "true"
+
+    # Cache Configuration
+    CACHE_NAMESPACE: str = os.getenv("CACHE_NAMESPACE", "chatbot")
+    CACHE_DEFAULT_TTL: int = int(os.getenv("CACHE_DEFAULT_TTL", "300"))
+
+    # Rate Limiting
+    RATE_LIMIT_ENABLED: bool = os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true"
+    RATE_LIMIT_WHITELIST: List[str] = os.getenv("RATE_LIMIT_WHITELIST", "").split(",") if os.getenv("RATE_LIMIT_WHITELIST") else []
+
+    # Performance Monitoring
+    PERFORMANCE_MONITORING_ENABLED: bool = os.getenv("PERFORMANCE_MONITORING_ENABLED", "true").lower() == "true"
+    PERFORMANCE_RETENTION_HOURS: int = int(os.getenv("PERFORMANCE_RETENTION_HOURS", "24"))
+
+    # Health Checks
+    HEALTH_CHECK_ENABLED: bool = os.getenv("HEALTH_CHECK_ENABLED", "true").lower() == "true"
+    HEALTH_CHECK_INTERVAL: int = int(os.getenv("HEALTH_CHECK_INTERVAL", "30"))
+
+    # Error Tracking
+    ERROR_TRACKING_ENABLED: bool = os.getenv("ERROR_TRACKING_ENABLED", "true").lower() == "true"
+    ERROR_RETENTION_HOURS: int = int(os.getenv("ERROR_RETENTION_HOURS", "168"))
+
+    # Security
+    SECURITY_HEADERS_ENABLED: bool = os.getenv("SECURITY_HEADERS_ENABLED", "true").lower() == "true"
+    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "*").split(",")
+
+    # Production Settings
+    WORKERS: int = int(os.getenv("WORKERS", "1"))
+    MAX_CONNECTIONS: int = int(os.getenv("MAX_CONNECTIONS", "1000"))
+    KEEPALIVE_TIMEOUT: int = int(os.getenv("KEEPALIVE_TIMEOUT", "5"))
     ENABLE_CACHING: bool = os.getenv("ENABLE_CACHING", "true").lower() == "true"
     ENABLE_CIRCUIT_BREAKER: bool = os.getenv("ENABLE_CIRCUIT_BREAKER", "true").lower() == "true"
     

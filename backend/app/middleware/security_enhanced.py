@@ -16,6 +16,7 @@ import jwt
 
 from app.core.config import settings
 from app.middleware.error_handler import SecurityError, RateLimitError
+from app.services.security_intelligence_service import security_intelligence_service
 
 logger = logging.getLogger(__name__)
 

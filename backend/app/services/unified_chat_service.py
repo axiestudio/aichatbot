@@ -11,11 +11,12 @@ from typing import List, Optional, Dict, Any, Union
 from datetime import datetime, timedelta
 
 from app.models.chat import ChatSession, ChatMessage, ChatConfig
-from app.models.database import ApiConfiguration, RagInstruction
+from app.models.database import ApiConfiguration, RagInstruction, LiveConfiguration
 from app.services.advanced_cache_service import cache_service, cached, CacheConfig
 from app.services.circuit_breaker_service import circuit_breaker, CircuitBreakerConfig
 from app.services.performance_monitoring_service import performance_service, performance_monitor
 from app.services.error_tracking_service import error_tracker
+from app.services.websocket_manager import websocket_manager
 from app.core.config import settings
 from app.core.database import get_db
 from sqlalchemy.orm import Session
@@ -59,6 +60,9 @@ class UnifiedChatService:
             ttl=1800,  # 30 minutes
             max_size=500
         )
+
+        # WebSocket manager for real-time updates
+        self.websocket_manager = websocket_manager
     
     def _initialize_default_config(self):
         """Initialize default chat configuration"""
@@ -80,6 +84,67 @@ class UnifiedChatService:
             updated_at=datetime.utcnow()
         )
         self.configs["default"] = default_config
+
+    async def get_live_config(self, instance_id: str, db: Session) -> Optional[Dict[str, Any]]:
+        """Get live configuration for an instance"""
+        try:
+            config = db.query(LiveConfiguration).filter(
+                LiveConfiguration.instance_id == instance_id,
+                LiveConfiguration.is_active == True
+            ).first()
+
+            if config:
+                return {
+                    "chat_title": config.chat_title,
+                    "chat_subtitle": config.chat_subtitle,
+                    "welcome_message": config.welcome_message,
+                    "placeholder_text": config.placeholder_text,
+                    "primary_color": config.primary_color,
+                    "secondary_color": config.secondary_color,
+                    "accent_color": config.accent_color,
+                    "background_color": config.background_color,
+                    "text_color": config.text_color,
+                    "logo_url": config.logo_url,
+                    "company_name": config.company_name,
+                    "show_branding": config.show_branding,
+                    "custom_css": config.custom_css,
+                    "typing_indicator": config.typing_indicator,
+                    "sound_enabled": config.sound_enabled,
+                    "auto_scroll": config.auto_scroll,
+                    "message_timestamps": config.message_timestamps,
+                    "file_upload_enabled": config.file_upload_enabled,
+                    "max_file_size_mb": config.max_file_size_mb,
+                    "allowed_file_types": config.allowed_file_types,
+                    "messages_per_minute": config.messages_per_minute,
+                    "messages_per_hour": config.messages_per_hour,
+                    "conversation_starters": config.conversation_starters,
+                    "quick_replies": config.quick_replies,
+                    "custom_fields": config.custom_fields
+                }
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error getting live config for instance {instance_id}: {e}")
+            return None
+
+    async def apply_rate_limits(self, instance_id: str, user_id: str, db: Session) -> bool:
+        """Apply rate limiting based on live configuration"""
+        try:
+            config = await self.get_live_config(instance_id, db)
+            if not config:
+                return True  # Allow if no config found
+
+            # Check rate limits (simplified implementation)
+            # In production, you'd use Redis or similar for distributed rate limiting
+            current_time = datetime.utcnow()
+
+            # For now, just return True (rate limiting would be implemented with Redis)
+            return True
+
+        except Exception as e:
+            logger.error(f"Error applying rate limits: {e}")
+            return True  # Allow on error
 
     def _get_active_api_config(self, db: Session) -> ApiConfiguration:
         """Get active API configuration from database"""
