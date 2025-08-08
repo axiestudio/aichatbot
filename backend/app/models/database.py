@@ -24,7 +24,7 @@ class ChatSession(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     last_activity = Column(DateTime, default=datetime.utcnow, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    metadata = Column(JSON, nullable=True)
+    session_data = Column(JSON, nullable=True)
     
     # Relationships
     messages = relationship("ChatMessage", back_populates="session", cascade="all, delete-orphan")
@@ -105,7 +105,7 @@ class Document(Base):
     
     # Relationships
     chunks = relationship("DocumentChunk", back_populates="document", cascade="all, delete-orphan")
-    metadata = relationship("DocumentMetadata", back_populates="document", cascade="all, delete-orphan")
+    doc_metadata = relationship("DocumentMetadata", back_populates="document", cascade="all, delete-orphan")
 
 
 class DocumentChunk(Base):
@@ -141,7 +141,7 @@ class DocumentMetadata(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationships
-    document = relationship("Document", back_populates="metadata")
+    document = relationship("Document", back_populates="doc_metadata")
 
 
 # Basic models for essential functionality
