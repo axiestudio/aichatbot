@@ -14,16 +14,7 @@ from app.core.tracing import tracing_service
 from app.api.v1.api import api_router
 from app.api.super_admin.router import super_admin_router
 from app.services.websocket_manager import websocket_router
-from app.services.cache_service import cache_service
-from app.services.performance_service import performance_service
-from app.services.rate_limit_service import rate_limit_service
-from app.services.ai_autoscaling_service import ai_autoscaling_service
-from app.services.security_intelligence_service import security_intelligence_service
-from app.services.advanced_analytics_service import advanced_analytics_service
-from app.services.conversation_intelligence_service import conversation_intelligence_service
-from app.services.realtime_collaboration_service import realtime_collaboration_service
-from app.services.content_moderation_service import content_moderation_service
-from app.services.knowledge_graph_service import knowledge_graph_service
+from app.services.enterprise_service_manager import enterprise_service_manager
 from app.api.v1.endpoints.health import router as health_router
 from app.core.logging import setup_logging
 from app.startup.railway_setup import run_railway_setup
@@ -176,25 +167,8 @@ async def startup_event():
     # Initialize tracing
     tracing_service.initialize()
 
-    # Initialize enterprise services
-    logger.info("🔧 Initializing enterprise services...")
-
-    # Initialize cache service
-    await cache_service.initialize()
-
-    # Start performance monitoring
-    await performance_service.start_monitoring()
-
-    # Start AI-powered services
-    await ai_autoscaling_service.start_ai_scaling()
-    await security_intelligence_service.start_security_monitoring()
-    await advanced_analytics_service.start_analytics_engine()
-
-    # Start advanced intelligence services
-    await conversation_intelligence_service.start_conversation_intelligence()
-    await realtime_collaboration_service.start_collaboration_service()
-    await content_moderation_service.start_moderation_service()
-    await knowledge_graph_service.start_knowledge_service()
+    # Initialize all enterprise services through service manager
+    await enterprise_service_manager.initialize_all_services()
 
     # Setup Railway environment if needed
     if settings.ENVIRONMENT == "production":
@@ -235,8 +209,8 @@ async def shutdown_event():
     """Application shutdown event"""
     logger.info("🛑 Shutting down application...")
 
-    # Stop performance monitoring
-    await performance_service.stop_monitoring()
+    # Gracefully shutdown all enterprise services
+    await enterprise_service_manager.shutdown_all_services()
 
     logger.info("✅ Application shutdown completed")
 
@@ -261,18 +235,19 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Comprehensive health check endpoint"""
+    """Enterprise health check endpoint with comprehensive service monitoring"""
     try:
-        from app.core.database import db_manager
-        from app.services.embedding_service import EmbeddingService
+        # Get comprehensive health status from service manager
+        service_health = await enterprise_service_manager.health_check_all_services()
 
         health_status = {
-            "status": "healthy",
+            "status": service_health["overall_status"],
             "timestamp": datetime.utcnow().isoformat(),
             "version": "1.0.0",
             "environment": settings.ENVIRONMENT,
             "uptime_seconds": time.time() - app.state.start_time if hasattr(app.state, 'start_time') else 0,
-            "railway_ready": True
+            "railway_ready": True,
+            "services": service_health["services"]
         }
 
         # Check database
