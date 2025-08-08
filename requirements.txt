@@ -1,0 +1,59 @@
+# Root requirements.txt for Digital Ocean buildpack detection
+# This includes all backend dependencies
+
+# Core FastAPI and Server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gunicorn==21.2.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+PyJWT==2.8.0
+bcrypt==4.1.2
+cryptography==41.0.7
+
+# Database
+sqlalchemy==1.4.53
+alembic==1.13.1
+psycopg2-binary==2.9.9
+asyncpg==0.29.0
+databases[postgresql]==0.8.0
+sqlalchemy-utils==0.41.1
+
+# AI & ML (Essential only)
+openai==1.3.7
+anthropic==0.7.8
+tiktoken==0.5.1
+
+# Data Processing (Minimal)
+numpy==1.24.3
+
+# Optional AI/ML Dependencies (with fallbacks)
+sentence-transformers==2.2.2
+
+# External Services (Core)
+supabase==2.3.4
+redis==5.0.1
+httpx==0.25.2
+
+# File Processing (Basic)
+aiofiles==23.2.1
+python-magic==0.4.27
+
+# Utilities (Essential)
+python-dotenv==1.0.0
+structlog==23.2.0
+email-validator==2.1.0
+
+# Production Monitoring (Basic)
+psutil==5.9.6
+
+# Security & Rate Limiting
+slowapi==0.1.9
+
+# WebSocket Support (Basic)
+websockets==12.0

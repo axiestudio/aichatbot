@@ -26,14 +26,13 @@ services:
   # Backend API Service (Python)
   - name: aichatbot2
     environment_slug: python
-    source_dir: /backend
     github:
       repo: axiestudio/aichatbot
       branch: main
       deploy_on_push: true
 
     build_command: pip install -r requirements.txt
-    run_command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    run_command: python main.py
 
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-2gb

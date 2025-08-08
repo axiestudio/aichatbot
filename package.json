@@ -1,0 +1,21 @@
+{
+  "name": "modern-chatbot-system",
+  "version": "1.0.0",
+  "description": "A comprehensive chatbot solution with React frontend and Python backend",
+  "private": true,
+  "scripts": {
+    "install-all": "cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
+    "dev": "concurrently \"cd backend && python start.py\" \"cd frontend && npm run dev\"",
+    "build": "echo 'This is a multi-service app. See .do/app.yaml for deployment configuration.'",
+    "start": "echo 'This is a multi-service app. Use Digital Ocean App Platform with Dockerfile.'"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["chatbot", "react", "fastapi", "rag", "ai"],
+  "author": "Stefan John Miranda",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
