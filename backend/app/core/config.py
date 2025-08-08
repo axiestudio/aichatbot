@@ -1,6 +1,28 @@
 from pydantic_settings import BaseSettings
 from typing import List, Optional
 import os
+import json
+
+
+def safe_getenv_list(key: str, default: str = "") -> List[str]:
+    """Safely get environment variable as list, avoiding JSON parsing issues"""
+    value = os.getenv(key, default)
+    if not value or value.strip() == "":
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def safe_getenv_bool(key: str, default: str = "false") -> bool:
+    """Safely get environment variable as boolean"""
+    return os.getenv(key, default).lower() == "true"
+
+
+def safe_getenv_int(key: str, default: str = "0") -> int:
+    """Safely get environment variable as integer"""
+    try:
+        return int(os.getenv(key, default))
+    except (ValueError, TypeError):
+        return int(default)
 
 
 class Settings(BaseSettings):
@@ -64,8 +86,11 @@ class Settings(BaseSettings):
     CACHE_DEFAULT_TTL: int = int(os.getenv("CACHE_DEFAULT_TTL", "300"))
 
     # Rate Limiting
-    RATE_LIMIT_ENABLED: bool = os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true"
-    RATE_LIMIT_WHITELIST: List[str] = os.getenv("RATE_LIMIT_WHITELIST", "").split(",") if os.getenv("RATE_LIMIT_WHITELIST") else []
+    RATE_LIMIT_ENABLED: bool = safe_getenv_bool("RATE_LIMIT_ENABLED", "true")
+
+    @property
+    def RATE_LIMIT_WHITELIST(self) -> List[str]:
+        return safe_getenv_list("RATE_LIMIT_WHITELIST", "")
 
     # Performance Monitoring
     PERFORMANCE_MONITORING_ENABLED: bool = os.getenv("PERFORMANCE_MONITORING_ENABLED", "true").lower() == "true"
@@ -80,8 +105,13 @@ class Settings(BaseSettings):
     ERROR_RETENTION_HOURS: int = int(os.getenv("ERROR_RETENTION_HOURS", "168"))
 
     # Security
-    SECURITY_HEADERS_ENABLED: bool = os.getenv("SECURITY_HEADERS_ENABLED", "true").lower() == "true"
-    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "*").split(",")
+    SECURITY_HEADERS_ENABLED: bool = safe_getenv_bool("SECURITY_HEADERS_ENABLED", "true")
+
+    # CORS Origins - handle as string and split manually to avoid JSON parsing issues
+    @property
+    def CORS_ORIGINS(self) -> List[str]:
+        origins = safe_getenv_list("CORS_ORIGINS", "*")
+        return origins if origins else ["*"]
 
     # Production Settings
     WORKERS: int = int(os.getenv("WORKERS", "1"))
@@ -92,7 +122,10 @@ class Settings(BaseSettings):
     
     # CORS Configuration
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173")
-    ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS", "*").split(",")
+
+    @property
+    def ALLOWED_HOSTS(self) -> List[str]:
+        return safe_getenv_list("ALLOWED_HOSTS", "*")
 
     # Rate Limiting & Security
     RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
