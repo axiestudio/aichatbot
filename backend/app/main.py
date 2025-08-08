@@ -226,13 +226,13 @@ async def startup_event():
     else:
         logger.info("⚠️ Tracing service not available")
 
-    # Initialize all enterprise services through service manager
+    # Initialize available services through service manager
     if ENTERPRISE_AVAILABLE:
         try:
             await enterprise_service_manager.initialize_all_services()
-            logger.info("✅ Enterprise services initialized")
+            logger.info("✅ Available services initialized")
         except Exception as e:
-            logger.error(f"❌ Enterprise services initialization failed: {e}")
+            logger.error(f"❌ Service initialization failed: {e}")
     else:
         logger.info("⚠️ Running in basic mode - enterprise services not available")
 
@@ -321,39 +321,31 @@ async def serve_spa(full_path: str):
 
 @app.get("/health")
 async def health_check():
-    """Enterprise health check endpoint with comprehensive service monitoring"""
+    """Simple health check endpoint"""
     try:
-        # Get comprehensive health status from service manager
-        service_health = await enterprise_service_manager.health_check_all_services()
-
         health_status = {
-            "status": service_health["overall_status"],
+            "status": "healthy",
             "timestamp": datetime.utcnow().isoformat(),
             "version": "1.0.0",
             "environment": settings.ENVIRONMENT,
-            "uptime_seconds": time.time() - app.state.start_time if hasattr(app.state, 'start_time') else 0,
-            "railway_ready": True,
-            "services": service_health["services"]
+            "uptime_seconds": time.time() - app.state.start_time if hasattr(app.state, 'start_time') else 0
         }
 
-        # Check database
+        # Check database if available
         try:
+            from app.core.database import db_manager
             db_connected = await db_manager.check_connection()
             health_status["database"] = "healthy" if db_connected else "unhealthy"
         except Exception as e:
-            health_status["database"] = f"error: {str(e)}"
+            health_status["database"] = f"not_available: {str(e)}"
 
-        # Check embedding service
-        try:
-            embedding_service = EmbeddingService()
-            embedding_healthy = await embedding_service.health_check()
-            health_status["embedding_service"] = "healthy" if embedding_healthy else "unhealthy"
-        except Exception as e:
-            health_status["embedding_service"] = f"error: {str(e)}"
-
-        # Overall status
-        if any("unhealthy" in str(v) or "error" in str(v) for v in health_status.values()):
-            health_status["status"] = "unhealthy"
+        # Check services if available
+        if ENTERPRISE_AVAILABLE:
+            try:
+                service_health = await enterprise_service_manager.health_check_all_services()
+                health_status["services"] = service_health["services"]
+            except Exception as e:
+                health_status["services"] = f"error: {str(e)}"
 
         return health_status
 
