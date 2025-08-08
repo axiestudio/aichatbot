@@ -12,14 +12,15 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
+# Install build dependencies (minimal)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    g++ \
     libpq-dev \
     build-essential \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/*
 
 # Create virtual environment
 RUN python -m venv /opt/venv
@@ -28,7 +29,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy backend requirements and install
 COPY backend/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /tmp/requirements.txt
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    rm -rf /tmp/* && \
+    rm -rf /root/.cache
 
 # ============================================================================
 # STAGE 2: PRODUCTION STAGE
@@ -53,13 +56,15 @@ ENV ENVIRONMENT=production
 ENV PATH="/opt/venv/bin:$PATH"
 ENV PORT=8000
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
+# Install runtime dependencies (minimal)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
     ca-certificates \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/*
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
