@@ -29,6 +29,13 @@ docker-compose up -d
 ### **Option 3: Digital Ocean App Platform**
 Click the "Deploy to Digital Ocean" button above for one-click deployment.
 
+### **Option 4: Cloud Platforms**
+Deploy the Docker image on any cloud platform:
+```bash
+# AWS ECS, Google Cloud Run, Azure Container Instances
+docker run -p 8000:8000 axiestudio/aichatbot:latest
+```
+
 ---
 
 ## ✨ Features
