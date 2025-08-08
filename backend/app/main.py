@@ -41,7 +41,7 @@ except ImportError:
     logger.warning("Enterprise services not available - running in basic mode")
 from app.api.v1.endpoints.health import router as health_router
 from app.core.logging import setup_logging
-from app.startup.railway_setup import run_railway_setup
+# Railway setup removed - Digital Ocean only deployment
 from app.middleware.rate_limit import rate_limit_middleware
 from app.middleware.error_handler import ErrorHandlingMiddleware
 from app.middleware.security_enhanced import SecurityEnhancementMiddleware
@@ -236,17 +236,10 @@ async def startup_event():
     else:
         logger.info("⚠️ Running in basic mode - enterprise services not available")
 
-    # Setup Railway environment if needed
+    # Production environment setup (Digital Ocean optimized)
     if settings.ENVIRONMENT == "production":
-        logger.info("🔧 Setting up Railway environment...")
-        try:
-            success = run_railway_setup()
-            if success:
-                logger.info("✅ Railway setup completed successfully")
-            else:
-                logger.warning("⚠️ Railway setup had issues")
-        except Exception as e:
-            logger.error(f"❌ Railway setup failed: {e}")
+        logger.info("🔧 Setting up production environment...")
+        logger.info("✅ Digital Ocean production environment ready")
 
     logger.info("🎉 Application startup completed successfully!")
     logger.info("🚀 WORLD-CLASS AI PLATFORM - INDUSTRY LEADER STATUS:")

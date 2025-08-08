@@ -24,18 +24,15 @@ help: ## Show available commands
 	@echo "  clean        - Clean up resources"
 	@echo "  security-scan - Run security vulnerability scan"
 
-install: ## Install all dependencies
-	@echo "📦 Installing dependencies..."
+install: ## Install backend dependencies only
+	@echo "📦 Installing production dependencies..."
 	cd backend && pip install -r requirements.txt
-	cd frontend && npm install
-	@echo "✅ Dependencies installed successfully!"
+	@echo "✅ Backend dependencies installed!"
 
-dev: ## Start development environment
-	@echo "🔧 Starting development environment..."
-	docker-compose up -d postgres redis
-	cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 &
-	cd frontend && npm run dev &
-	@echo "✅ Development environment running!"
+dev: ## Start backend development server
+	@echo "🔧 Starting backend development server..."
+	cd backend && python start.py
+	@echo "✅ Backend server running on port 8000!"
 
 test: ## Run comprehensive test suite
 	@echo "🧪 Running comprehensive test suite..."

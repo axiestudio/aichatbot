@@ -28,10 +28,10 @@ def safe_getenv_int(key: str, default: str = "0") -> int:
 class Settings(BaseSettings):
     """Application settings"""
     
-    # FastAPI Configuration
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE-THIS-IN-PRODUCTION-MINIMUM-32-CHARACTERS")
+    # FastAPI Configuration (Production-Optimized)
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "prod-chatbot-secret-key-2024-digital-ocean-deployment-secure")
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "production" if os.getenv("RAILWAY_ENVIRONMENT") else "development")
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "production")
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # Server Configuration

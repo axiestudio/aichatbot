@@ -1,10 +1,14 @@
-# 🌊 Digital Ocean App Platform Deployment Guide
+# 🚀 AI CHATBOT PLATFORM - PRODUCTION DEPLOYMENT GUIDE
+## **SINGLE SOURCE OF TRUTH - DIGITAL OCEAN APP PLATFORM**
+
+### 🎯 **PRODUCTION-READY DEPLOYMENT**
+This is the **ONLY** deployment method. All redundancies eliminated.
 
 ## 📋 Prerequisites
 
 - ✅ Digital Ocean account
 - ✅ GitHub repository: `https://github.com/axiestudio/aichatbot`
-- ✅ Supabase project (or plan to use DO managed PostgreSQL)
+- ✅ Supabase project (configured and ready)
 
 ## 🚀 Step-by-Step Deployment
 

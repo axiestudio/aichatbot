@@ -1,10 +1,15 @@
-# Core FastAPI and Server
+# PRODUCTION-OPTIMIZED DEPENDENCIES
+# Core FastAPI and Server (Production-Ready)
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 gunicorn==21.2.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
 python-multipart==0.0.6
+
+# Production Performance
+uvloop==0.19.0
+httptools==0.6.1
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
