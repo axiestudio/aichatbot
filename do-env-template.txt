@@ -1,5 +1,7 @@
-# Digital Ocean App Platform Environment Variables Template
-# Copy these variables to your DO App Platform environment configuration
+# ========================================
+# DIGITAL OCEAN APP PLATFORM ENVIRONMENT TEMPLATE
+# Complete Configuration for AI Chatbot Platform
+# ========================================
 
 # =============================================================================
 # GLOBAL ENVIRONMENT VARIABLES (All Services)
@@ -12,40 +14,205 @@ PYTHONUNBUFFERED=1
 PYTHONDONTWRITEBYTECODE=1
 
 # =============================================================================
+# CORE DATABASE CONFIGURATION
+# =============================================================================
+
+# Option 1: Digital Ocean Managed PostgreSQL (Recommended)
+# DATABASE_URL will be automatically set by Digital Ocean when you add PostgreSQL service
+# Format: postgresql://username:password@host:port/database
+
+# Option 2: Supabase PostgreSQL (Alternative)
+# DATABASE_URL=postgresql://postgres.your-project:your-password@aws-0-region.pooler.supabase.com:6543/postgres
+# SUPABASE_URL=https://your-project.supabase.co
+# SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# =============================================================================
 # BACKEND SERVICE ENVIRONMENT VARIABLES
 # =============================================================================
 
 # Security Keys (CHANGE THESE IN PRODUCTION!)
 SECRET_KEY=your-super-secret-key-change-in-production-minimum-32-characters
 JWT_SECRET_KEY=your-jwt-secret-key-change-in-production-minimum-32-characters
+JWT_ALGORITHM=HS256
 
 # Admin Credentials
 ADMIN_USERNAME=stefan@axiestudio.se
 ADMIN_PASSWORD=STEfanjohn!12
+ADMIN_EMAIL=stefan@axiestudio.se
 
-# Database Configuration (Auto-configured by DO)
-# DATABASE_URL will be automatically set by Digital Ocean
-# Format: postgresql://username:password@host:port/database
-
-# Redis Configuration (if using Redis service)
-# REDIS_URL will be automatically set if you add Redis service
-# Format: redis://redis:6379/0
+# API Configuration
+API_V1_STR=/api/v1
+API_TITLE=AI Chatbot Platform
+API_VERSION=1.0.0
+API_DESCRIPTION=Enterprise AI Chatbot Platform with Admin Panel
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # CORS and Security Settings
 CORS_ORIGINS=https://your-app-name.ondigitalocean.app,http://localhost:3000
 ALLOWED_HOSTS=your-app-name.ondigitalocean.app,localhost
+CORS_ALLOW_CREDENTIALS=true
+CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS
+CORS_ALLOW_HEADERS=*
 
-# API Configuration
-API_V1_STR=/api/v1
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+# =============================================================================
+# CACHING CONFIGURATION (NO REDIS NEEDED!)
+# =============================================================================
 
-# File Upload Settings
-MAX_FILE_SIZE=10485760
-UPLOAD_DIR=./uploads
+# Caching Backend (uses Supabase instead of Redis)
+ENABLE_CACHING=true
+CACHE_BACKEND=supabase
+CACHE_NAMESPACE=chatbot_prod
+CACHE_DEFAULT_TTL=300
 
-# Rate Limiting
-RATE_LIMIT_REQUESTS=100
-RATE_LIMIT_WINDOW=60
+# Cache TTL Settings (seconds)
+CACHE_TTL_LIVE_CONFIG=300
+CACHE_TTL_API_CONFIG=600
+CACHE_TTL_RAG_CONFIG=600
+CACHE_TTL_USER_SESSION=3600
+CACHE_TTL_CHAT_HISTORY=1800
+CACHE_TTL_HEALTH_CHECK=30
+CACHE_TTL_ANALYTICS=900
+
+# =============================================================================
+# SESSION CONFIGURATION (SUPABASE-BASED)
+# =============================================================================
+
+SESSION_BACKEND=supabase
+SESSION_TIMEOUT=3600
+SESSION_CLEANUP_INTERVAL=3600
+
+# =============================================================================
+# AI PROVIDER CONFIGURATION (USER-CONFIGURABLE)
+# =============================================================================
+
+# NOTE: AI keys are configured by users in the admin panel
+# This is a "tool provider" model - users bring their own API keys
+AI_FEATURES_ENABLED=true
+AI_PROVIDER_FALLBACK_ENABLED=false
+
+# Optional fallback keys (leave commented out to force user configuration)
+# OPENAI_API_KEY=sk-your-fallback-openai-key
+# ANTHROPIC_API_KEY=your-fallback-anthropic-key
+
+# AI Model Defaults
+DEFAULT_OPENAI_MODEL=gpt-3.5-turbo
+DEFAULT_ANTHROPIC_MODEL=claude-3-sonnet-20240229
+AI_MAX_TOKENS=4000
+AI_TEMPERATURE=0.7
+
+# =============================================================================
+# SECURITY & RATE LIMITING
+# =============================================================================
+
+# Rate Limiting (uses Supabase for storage)
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_REQUESTS_PER_MINUTE=60
+RATE_LIMIT_BURST_SIZE=10
+RATE_LIMIT_STORAGE=supabase
+
+# Security Features
+SECURITY_HEADERS_ENABLED=true
+CONTENT_SECURITY_POLICY_ENABLED=true
+CSRF_PROTECTION_ENABLED=true
+XSS_PROTECTION_ENABLED=true
+
+# =============================================================================
+# FILE UPLOAD CONFIGURATION
+# =============================================================================
+
+MAX_UPLOAD_SIZE=10485760
+ALLOWED_FILE_TYPES=txt,pdf,docx,md
+UPLOAD_STORAGE=supabase
+UPLOAD_VIRUS_SCAN_ENABLED=false
+
+# =============================================================================
+# CHAT CONFIGURATION
+# =============================================================================
+
+CHAT_MAX_HISTORY_LENGTH=50
+CHAT_SESSION_TIMEOUT=3600
+CHAT_MAX_MESSAGE_LENGTH=4000
+CHAT_ENABLE_TYPING_INDICATORS=true
+CHAT_ENABLE_MESSAGE_REACTIONS=true
+
+# =============================================================================
+# RAG CONFIGURATION
+# =============================================================================
+
+RAG_ENABLED=true
+RAG_CHUNK_SIZE=1000
+RAG_CHUNK_OVERLAP=200
+RAG_MAX_CHUNKS=10
+RAG_SIMILARITY_THRESHOLD=0.7
+EMBEDDING_MODEL=text-embedding-ada-002
+
+# =============================================================================
+# MONITORING & ANALYTICS
+# =============================================================================
+
+ENABLE_METRICS=true
+METRICS_ENDPOINT=/metrics
+HEALTH_CHECK_ENDPOINT=/health
+PERFORMANCE_MONITORING_ENABLED=true
+
+# =============================================================================
+# WEBSOCKET CONFIGURATION
+# =============================================================================
+
+WEBSOCKET_ENABLED=true
+WEBSOCKET_MAX_CONNECTIONS=1000
+WEBSOCKET_HEARTBEAT_INTERVAL=30
+
+# =============================================================================
+# FEATURE FLAGS
+# =============================================================================
+
+FEATURE_CHAT_EXPORT=true
+FEATURE_CHAT_IMPORT=true
+FEATURE_MULTI_LANGUAGE=true
+FEATURE_VOICE_INPUT=false
+FEATURE_VOICE_OUTPUT=false
+FEATURE_SCREEN_SHARING=false
+
+# =============================================================================
+# ADVANCED FEATURES (DISABLED FOR STABILITY)
+# =============================================================================
+
+ENABLE_TRACING=false
+AI_SCALING_ENABLED=false
+SECURITY_INTELLIGENCE_ENABLED=false
+ADVANCED_ANALYTICS_ENABLED=false
+CONVERSATION_INTELLIGENCE_ENABLED=false
+CONTENT_MODERATION_ENABLED=false
+KNOWLEDGE_GRAPH_ENABLED=false
+REALTIME_COLLABORATION_ENABLED=false
+
+# =============================================================================
+# PERFORMANCE SETTINGS
+# =============================================================================
+
+WORKERS=4
+MAX_CONNECTIONS=1000
+WORKER_TIMEOUT=30
+KEEPALIVE_TIMEOUT=5
+MAX_REQUESTS_PER_WORKER=1000
+
+# =============================================================================
+# LOGGING CONFIGURATION
+# =============================================================================
+
+LOG_FORMAT=json
+LOG_ROTATION_SIZE=100MB
+LOG_RETENTION_DAYS=30
+LOG_SENSITIVE_DATA=false
+
+# =============================================================================
+# TIMEZONE & LOCALIZATION
+# =============================================================================
+
+TIMEZONE=UTC
+DEFAULT_LANGUAGE=en
+SUPPORTED_LANGUAGES=en,sv,no,da,fi
 
 # =============================================================================
 # FRONTEND SERVICE ENVIRONMENT VARIABLES
@@ -62,10 +229,10 @@ VITE_WS_URL=${backend.PUBLIC_URL}
 # OPTIONAL SERVICES CONFIGURATION
 # =============================================================================
 
-# OpenAI Configuration (if using AI features)
+# AI Provider Configuration (OPTIONAL - Users configure in admin panel)
+# These are fallback/default keys - users can override in admin interface
+# Leave commented out to force users to configure their own keys
 # OPENAI_API_KEY=your-openai-api-key
-
-# Anthropic Configuration (if using Claude)
 # ANTHROPIC_API_KEY=your-anthropic-api-key
 
 # Supabase Configuration (if using Supabase)
@@ -84,14 +251,83 @@ VITE_WS_URL=${backend.PUBLIC_URL}
 # GOOGLE_ANALYTICS_ID=your-ga-id
 
 # =============================================================================
+# DEPLOYMENT INSTRUCTIONS
+# =============================================================================
+
+# 1. Create a new App in Digital Ocean App Platform
+# 2. Connect your GitHub repository: https://github.com/axiestudio/aichatbot
+# 3. Configure services according to .do/app.yaml
+# 4. Add these environment variables to the backend service
+# 5. Add PostgreSQL database service (DATABASE_URL auto-configured)
+# 6. Optional: Add Redis service for better performance (not required)
+# 7. Deploy and test health endpoints
+
+# =============================================================================
+# DATABASE SETUP (IF USING SUPABASE)
+# =============================================================================
+
+# Run this SQL in your Supabase SQL editor to create cache tables:
+#
+# CREATE TABLE IF NOT EXISTS cache_entries (
+#     id SERIAL PRIMARY KEY,
+#     cache_key VARCHAR(255) UNIQUE NOT NULL,
+#     cache_type VARCHAR(50) NOT NULL DEFAULT 'default',
+#     value JSONB NOT NULL,
+#     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+#     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+#     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+# );
+#
+# CREATE INDEX IF NOT EXISTS idx_cache_key ON cache_entries(cache_key);
+# CREATE INDEX IF NOT EXISTS idx_cache_type ON cache_entries(cache_type);
+# CREATE INDEX IF NOT EXISTS idx_cache_expires ON cache_entries(expires_at);
+#
+# CREATE TABLE IF NOT EXISTS user_sessions (
+#     id SERIAL PRIMARY KEY,
+#     session_id VARCHAR(255) UNIQUE NOT NULL,
+#     user_id VARCHAR(255),
+#     session_data JSONB NOT NULL DEFAULT '{}',
+#     ip_address VARCHAR(45),
+#     user_agent TEXT,
+#     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+#     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+#     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+#     is_active BOOLEAN DEFAULT TRUE
+# );
+#
+# CREATE INDEX IF NOT EXISTS idx_session_id ON user_sessions(session_id);
+# CREATE INDEX IF NOT EXISTS idx_user_id ON user_sessions(user_id);
+# CREATE INDEX IF NOT EXISTS idx_session_expires ON user_sessions(expires_at);
+# CREATE INDEX IF NOT EXISTS idx_session_active ON user_sessions(is_active);
+
+# =============================================================================
+# HEALTH CHECK ENDPOINTS
+# =============================================================================
+
+# Backend Health: https://your-app.ondigitalocean.app/api/v1/health
+# Frontend Health: https://your-app.ondigitalocean.app/
+# Admin Panel: https://your-app.ondigitalocean.app/api/v1/admin
+
+# =============================================================================
 # DIGITAL OCEAN SPECIFIC NOTES
 # =============================================================================
 
 # 1. DATABASE_URL is automatically provided when you add a PostgreSQL database
-# 2. Redis URL is automatically provided when you add a Redis service
+# 2. NO REDIS NEEDED - Uses Supabase for caching and sessions
 # 3. Use ${service-name.PUBLIC_URL} to reference other services
 # 4. Mark sensitive values as "SECRET" type in DO dashboard
 # 5. Environment variables are automatically injected at runtime
+
+# =============================================================================
+# ARCHITECTURE BENEFITS
+# =============================================================================
+
+# ✅ NO REDIS DEPENDENCY - Uses Supabase for all caching and sessions
+# ✅ USER-CONFIGURABLE AI KEYS - Tool provider model, users bring own keys
+# ✅ COST EFFICIENT - No separate Redis service needed
+# ✅ SCALABLE - Supabase handles caching and session distribution
+# ✅ PRODUCTION READY - Comprehensive configuration for enterprise use
+# ✅ FALLBACK SUPPORT - Works even if advanced features fail
 
 # =============================================================================
 # SECURITY RECOMMENDATIONS
@@ -104,3 +340,4 @@ VITE_WS_URL=${backend.PUBLIC_URL}
 # 5. Use DO's secret management for sensitive values
 # 6. Restrict CORS origins to your actual domains
 # 7. Monitor access logs and set up alerts
+# 8. Configure AI keys through admin panel, not environment variables
