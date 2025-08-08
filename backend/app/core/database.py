@@ -19,11 +19,21 @@ except ImportError:
 from sqlalchemy.pool import StaticPool
 
 from app.core.config import settings
+# Import Railway-compatible database models
 try:
     from app.models.database import Base
-except ImportError:
-    # Fallback to simplified models for Railway deployment
-    from app.models.database_simple import Base
+    logger.info("✅ Using Railway-compatible database models")
+except Exception as e:
+    logger.warning(f"⚠️ Database models failed ({e}), trying full models")
+    try:
+        from app.models.database_full import Base
+        logger.info("✅ Using full database models")
+    except Exception as e2:
+        logger.error(f"❌ All model imports failed: {e2}")
+        # Create minimal Base for emergency fallback
+        from sqlalchemy.ext.declarative import declarative_base
+        Base = declarative_base()
+        logger.warning("🚨 Using emergency minimal Base")
 
 logger = logging.getLogger(__name__)
 

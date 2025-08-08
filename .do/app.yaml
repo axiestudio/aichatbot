@@ -10,6 +10,9 @@ services:
       branch: main
       deploy_on_push: true
 
+    # Explicit environment type
+    environment_slug: python
+
     # Force Python buildpack
     buildpacks:
       - heroku/python
