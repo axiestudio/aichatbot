@@ -14,9 +14,17 @@ import asyncio
 import hashlib
 
 from app.core.config import settings
-from .cache_service import cache_service
 
 logger = logging.getLogger(__name__)
+
+# Lazy import to avoid circular dependencies
+def get_cache_service():
+    try:
+        from .cache_service import cache_service
+        return cache_service
+    except ImportError:
+        logger.warning("Cache service not available")
+        return None
 
 
 class ErrorTrackingService:
@@ -277,17 +285,19 @@ class ErrorTrackingService:
     async def _recover_redis_connection(self, context: Dict[str, Any]) -> bool:
         """Recover Redis connection issues"""
         try:
-            # Reinitialize cache service
-            await cache_service.initialize()
+            # Get cache service with lazy import
+            cache_service = get_cache_service()
+            if not cache_service:
+                return False
 
-            # Test Redis connection
+            # Test cache connection
             test_key = "recovery_test"
             await cache_service.set(test_key, "test", "default", 10)
             result = await cache_service.get(test_key, "default")
 
             if result == "test":
                 await cache_service.delete(test_key, "default")
-                logger.info("Redis connection recovered")
+                logger.info("Cache connection recovered")
                 return True
             else:
                 return False
