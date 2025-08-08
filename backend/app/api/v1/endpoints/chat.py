@@ -4,10 +4,22 @@ import logging
 import uuid
 from datetime import datetime
 
-from app.models.chat import ChatRequest, ChatResponse, ChatMessage, ChatSession
+from app.models.database import ChatMessage, ChatSession
 from app.services.unified_chat_service import unified_chat_service
 from app.services.rag_service import RAGService
-from app.services.unified_monitoring_service import unified_monitoring
+
+# Create basic request/response models
+from pydantic import BaseModel
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+    config_id: Optional[str] = None
+
+class ChatResponse(BaseModel):
+    message: str
+    session_id: str
+    timestamp: datetime
 from app.core.dependencies import get_current_user, get_chat_service, get_rag_service
 from app.core.database import get_db
 from sqlalchemy.orm import Session

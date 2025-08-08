@@ -2,13 +2,19 @@ from typing import Dict, Any, List, Optional
 import logging
 import openai
 import anthropic
-from sentence_transformers import SentenceTransformer
 import numpy as np
 
+# Optional sentence transformers import
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SentenceTransformer = None
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+
 from app.core.config import settings
-from app.models.config import RagInstruction, ApiConfig, SupabaseConfig
 from app.services.supabase_service import SupabaseService
-from app.services.config_service import ConfigService
+from app.services.config_service import ConfigService, RagInstruction, ApiConfig, SupabaseConfig
 
 logger = logging.getLogger(__name__)
 

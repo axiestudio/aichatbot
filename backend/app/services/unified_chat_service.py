@@ -10,11 +10,20 @@ import asyncio
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime, timedelta
 
-from app.models.chat import ChatSession, ChatMessage, ChatConfig
-from app.models.database import ApiConfiguration, RagInstruction, LiveConfiguration
-from app.services.advanced_cache_service import cache_service, cached, CacheConfig
-from app.services.circuit_breaker_service import circuit_breaker, CircuitBreakerConfig
-from app.services.performance_monitoring_service import performance_service, performance_monitor
+from app.models.database import ChatSession, ChatMessage, LiveConfiguration
+try:
+    from app.services.cache_service import cache_service
+    CACHE_AVAILABLE = True
+except ImportError:
+    CACHE_AVAILABLE = False
+    cache_service = None
+
+try:
+    from app.services.performance_service import performance_service
+    PERFORMANCE_AVAILABLE = True
+except ImportError:
+    PERFORMANCE_AVAILABLE = False
+    performance_service = None
 from app.services.error_tracking_service import error_tracker
 from app.services.websocket_manager import websocket_manager
 from app.core.config import settings

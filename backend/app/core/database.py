@@ -239,11 +239,27 @@ class DatabaseManager:
 db_manager = DatabaseManager()
 
 
-# Dependency for FastAPI
+# Dependency for FastAPI (async)
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """FastAPI dependency for database session"""
     async with db_manager.get_async_session() as session:
         yield session
+
+# Sync dependency for compatibility with existing code
+def get_db():
+    """Sync database session generator for compatibility"""
+    if not db_manager._initialized:
+        db_manager.initialize()
+
+    session = db_manager.get_sync_session()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 # Initialize database on import

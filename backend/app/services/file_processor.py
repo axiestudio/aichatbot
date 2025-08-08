@@ -6,19 +6,66 @@ from pathlib import Path
 import logging
 from datetime import datetime
 
-# Document processing imports
-import PyPDF2
-from docx import Document as DocxDocument
-import pandas as pd
+# Document processing imports (with fallbacks)
+try:
+    import PyPDF2
+    PDF_AVAILABLE = True
+except ImportError:
+    PDF_AVAILABLE = False
+
+try:
+    from docx import Document as DocxDocument
+    DOCX_AVAILABLE = True
+except ImportError:
+    DOCX_AVAILABLE = False
+
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+
 import json
-from bs4 import BeautifulSoup
-import markdown
+
+try:
+    from bs4 import BeautifulSoup
+    BS4_AVAILABLE = True
+except ImportError:
+    BS4_AVAILABLE = False
+
+try:
+    import markdown
+    MARKDOWN_AVAILABLE = True
+except ImportError:
+    MARKDOWN_AVAILABLE = False
 
 # Text processing imports
 import tiktoken
-from sentence_transformers import SentenceTransformer
 
-from app.models.document import DocumentChunk, DocumentMetadata, DocumentType
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+
+# Create basic document models
+from pydantic import BaseModel
+from typing import List
+
+class DocumentChunk(BaseModel):
+    content: str
+    chunk_index: int
+    start_char: int
+    end_char: int
+
+class DocumentMetadata(BaseModel):
+    title: Optional[str] = None
+    author: Optional[str] = None
+
+class DocumentType:
+    PDF = "pdf"
+    DOCX = "docx"
+    TXT = "txt"
 
 logger = logging.getLogger(__name__)
 

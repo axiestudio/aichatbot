@@ -4,9 +4,28 @@ from datetime import datetime
 import openai
 import anthropic
 
-from app.models.config import ApiConfig, SupabaseConfig, RagInstruction
-from app.models.chat import ChatConfig
+from app.models.database import LiveConfiguration
 from app.services.supabase_service import SupabaseService
+
+# Create basic config models
+from pydantic import BaseModel
+
+class ApiConfig(BaseModel):
+    openai_api_key: Optional[str] = None
+    anthropic_api_key: Optional[str] = None
+    model_name: str = "gpt-3.5-turbo"
+
+class SupabaseConfig(BaseModel):
+    url: Optional[str] = None
+    key: Optional[str] = None
+
+class RagInstruction(BaseModel):
+    instruction: str
+    priority: int = 1
+
+class ChatConfig(BaseModel):
+    title: str = "AI Assistant"
+    welcome_message: str = "Hello! How can I help you?"
 
 logger = logging.getLogger(__name__)
 

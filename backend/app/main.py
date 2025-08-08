@@ -13,12 +13,22 @@ from pathlib import Path
 from typing import Dict, Any
 
 from app.core.config import settings
+
+# Setup logger
+logger = logging.getLogger(__name__)
+
 try:
     from app.core.database import init_database
 except ImportError as e:
     logger.warning(f"Database initialization failed: {e}")
     init_database = None
-from app.core.tracing import tracing_service
+try:
+    from app.core.tracing import tracing_service
+    TRACING_AVAILABLE = True
+except ImportError:
+    TRACING_AVAILABLE = False
+    tracing_service = None
+    logger.warning("Tracing service not available - OpenTelemetry packages missing")
 from app.api.v1.api import api_router
 from app.api.super_admin.router import super_admin_router
 from app.services.websocket_manager import websocket_router
@@ -38,12 +48,20 @@ from app.middleware.security_enhanced import SecurityEnhancementMiddleware
 from app.middleware.multi_tenant import MultiTenantMiddleware
 # Import cache service with fallback
 try:
-    from app.services.advanced_cache_service import cache_service
+    from app.services.cache_service import cache_service
     CACHE_AVAILABLE = True
 except ImportError:
     CACHE_AVAILABLE = False
-    logger.warning("Advanced cache service not available")
-from app.services.unified_monitoring_service import unified_monitoring
+    logger.warning("Cache service not available")
+
+# Import monitoring service with fallback
+try:
+    from app.services.health_service import health_service as unified_monitoring
+    MONITORING_AVAILABLE = True
+except ImportError:
+    MONITORING_AVAILABLE = False
+    logger.warning("Monitoring service not available")
+    unified_monitoring = None
 
 # Setup logging
 setup_logging()
@@ -59,12 +77,14 @@ async def lifespan(app: FastAPI):
     app.state.start_time = time.time()
 
     # Initialize distributed tracing
-    if settings.ENABLE_TRACING:
+    if TRACING_AVAILABLE and settings.ENABLE_TRACING:
         try:
             tracing_service.initialize(app)
             logger.info("Distributed tracing initialized")
         except Exception as e:
             logger.error(f"Tracing initialization failed: {str(e)}")
+    else:
+        logger.info("Tracing disabled or not available")
 
     # Initialize cache service
     if CACHE_AVAILABLE and settings.ENABLE_CACHING:
@@ -167,9 +187,7 @@ app.add_middleware(ErrorHandlingMiddleware)
 app.add_middleware(SecurityEnhancementMiddleware)
 app.add_middleware(MultiTenantMiddleware)
 
-# Add existing security middleware
-app.middleware("http")(security_headers_middleware)
-app.middleware("http")(input_validation_middleware)
+# Add rate limiting middleware
 app.middleware("http")(rate_limit_middleware)
 
 # Include API routers
@@ -199,10 +217,24 @@ async def startup_event():
         logger.warning("Database initialization skipped - running in minimal mode")
 
     # Initialize tracing
-    tracing_service.initialize()
+    if TRACING_AVAILABLE:
+        try:
+            tracing_service.initialize()
+            logger.info("✅ Tracing service initialized")
+        except Exception as e:
+            logger.error(f"❌ Tracing initialization failed: {e}")
+    else:
+        logger.info("⚠️ Tracing service not available")
 
     # Initialize all enterprise services through service manager
-    await enterprise_service_manager.initialize_all_services()
+    if ENTERPRISE_AVAILABLE:
+        try:
+            await enterprise_service_manager.initialize_all_services()
+            logger.info("✅ Enterprise services initialized")
+        except Exception as e:
+            logger.error(f"❌ Enterprise services initialization failed: {e}")
+    else:
+        logger.info("⚠️ Running in basic mode - enterprise services not available")
 
     # Setup Railway environment if needed
     if settings.ENVIRONMENT == "production":

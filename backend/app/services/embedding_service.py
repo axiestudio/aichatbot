@@ -5,9 +5,20 @@ import logging
 from functools import lru_cache
 
 # Embedding model imports
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SentenceTransformer = None
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+
 import openai
-from openai import AsyncOpenAI
+try:
+    from openai import AsyncOpenAI
+    ASYNC_OPENAI_AVAILABLE = True
+except ImportError:
+    AsyncOpenAI = None
+    ASYNC_OPENAI_AVAILABLE = False
 
 from app.core.config import settings
 

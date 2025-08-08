@@ -4,14 +4,35 @@ from fastapi import HTTPException, Depends, status, WebSocket, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from app.core.config import settings
-from app.services.unified_chat_service import unified_chat_service
-from app.services.rag_service import RAGService
-from app.services.unified_monitoring_service import unified_monitoring
-from app.services.config_service import ConfigService
-from app.services.document_service import DocumentService
-from app.services.embedding_service import EmbeddingService
-from app.services.file_processor import FileProcessor
-from app.services.storage_service import StorageService
+try:
+    from app.services.unified_chat_service import unified_chat_service
+except ImportError:
+    unified_chat_service = None
+
+try:
+    from app.services.rag_service import RAGService
+except ImportError:
+    RAGService = None
+
+try:
+    from app.services.config_service import ConfigService
+except ImportError:
+    ConfigService = None
+
+try:
+    from app.services.document_service import DocumentService
+except ImportError:
+    DocumentService = None
+
+try:
+    from app.services.embedding_service import EmbeddingService
+except ImportError:
+    EmbeddingService = None
+
+try:
+    from app.services.file_processor import FileProcessor
+except ImportError:
+    FileProcessor = None
 
 # Security
 security = HTTPBearer(auto_error=False)
@@ -65,18 +86,23 @@ async def get_current_admin_user(
 # Service Dependencies
 def get_chat_service():
     """Get unified chat service instance"""
+    if unified_chat_service is None:
+        raise HTTPException(status_code=503, detail="Chat service not available")
     return unified_chat_service
 
 
 @lru_cache()
-def get_rag_service() -> RAGService:
+def get_rag_service():
     """Get RAG service instance"""
+    if RAGService is None:
+        raise HTTPException(status_code=503, detail="RAG service not available")
     return RAGService()
 
 
 def get_monitoring_service():
-    """Get unified monitoring service instance"""
-    return unified_monitoring
+    """Get monitoring service instance"""
+    # Return a basic monitoring service or None
+    return None
 
 
 async def get_current_user_ws(
