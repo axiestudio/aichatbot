@@ -14,14 +14,23 @@ PYTHONUNBUFFERED=1
 PYTHONDONTWRITEBYTECODE=1
 
 # =============================================================================
-# CORE DATABASE CONFIGURATION
+# PLATFORM DATABASE CONFIGURATION (SUPER ADMIN LEVEL)
 # =============================================================================
 
-# Option 1: Digital Ocean Managed PostgreSQL (Recommended)
+# IMPORTANT: This is YOUR platform database for infrastructure only
+# Used for: cache, sessions, super admin management, platform analytics
+# NOT for client data - each client uses their own database
+
+# Option 1: Digital Ocean Managed PostgreSQL (Recommended for platform)
 # DATABASE_URL will be automatically set by Digital Ocean when you add PostgreSQL service
 # Format: postgresql://username:password@host:port/database
 
-# Option 2: Supabase PostgreSQL (Alternative)
+# Option 2: Your Platform Supabase (Alternative for platform infrastructure)
+# PLATFORM_DATABASE_URL=postgresql://postgres.your-project:your-password@aws-0-region.pooler.supabase.com:6543/postgres
+# PLATFORM_SUPABASE_URL=https://your-project.supabase.co
+# PLATFORM_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# Legacy aliases (point to platform database)
 # DATABASE_URL=postgresql://postgres.your-project:your-password@aws-0-region.pooler.supabase.com:6543/postgres
 # SUPABASE_URL=https://your-project.supabase.co
 # SUPABASE_ANON_KEY=your-supabase-anon-key
@@ -55,13 +64,14 @@ CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS
 CORS_ALLOW_HEADERS=*
 
 # =============================================================================
-# CACHING CONFIGURATION (NO REDIS NEEDED!)
+# PLATFORM CACHING CONFIGURATION (NO REDIS NEEDED!)
 # =============================================================================
 
-# Caching Backend (uses Supabase instead of Redis)
+# Caching Backend (uses YOUR platform Supabase instead of Redis)
+# This is for platform-level caching, NOT client data
 ENABLE_CACHING=true
 CACHE_BACKEND=supabase
-CACHE_NAMESPACE=chatbot_prod
+CACHE_NAMESPACE=platform_cache
 CACHE_DEFAULT_TTL=300
 
 # Cache TTL Settings (seconds)
@@ -74,21 +84,47 @@ CACHE_TTL_HEALTH_CHECK=30
 CACHE_TTL_ANALYTICS=900
 
 # =============================================================================
-# SESSION CONFIGURATION (SUPABASE-BASED)
+# PLATFORM SESSION CONFIGURATION (SUPABASE-BASED)
 # =============================================================================
 
+# Uses YOUR platform Supabase for super admin and instance management sessions
 SESSION_BACKEND=supabase
 SESSION_TIMEOUT=3600
 SESSION_CLEANUP_INTERVAL=3600
 
 # =============================================================================
-# AI PROVIDER CONFIGURATION (USER-CONFIGURABLE)
+# MULTI-TENANT ARCHITECTURE CONFIGURATION
 # =============================================================================
 
-# NOTE: AI keys are configured by users in the admin panel
-# This is a "tool provider" model - users bring their own API keys
+# IMPORTANT: This platform serves multiple client instances
+# Each client gets their own isolated environment
+
+# Platform Level (YOUR Database):
+# - Super admin management
+# - Platform caching and sessions
+# - Instance creation and monitoring
+# - Global rate limiting and security
+
+# Client Level (THEIR Database):
+# - Client chat data and sessions
+# - Client-specific configurations
+# - Client AI API keys
+# - Client analytics and monitoring
+
+MULTI_TENANT_MODE=true
+PLATFORM_ISOLATION_ENABLED=true
+CLIENT_DATA_ISOLATION_ENABLED=true
+
+# =============================================================================
+# AI PROVIDER CONFIGURATION (CLIENT-MANAGED)
+# =============================================================================
+
+# NOTE: AI keys are configured by EACH CLIENT in their admin panel
+# This is a "tool provider" model - clients bring their own API keys
+# NO PLATFORM-LEVEL AI KEYS - each client configures their own
 AI_FEATURES_ENABLED=true
 AI_PROVIDER_FALLBACK_ENABLED=false
+REQUIRE_CLIENT_AI_KEYS=true
 
 # Optional fallback keys (leave commented out to force user configuration)
 # OPENAI_API_KEY=sk-your-fallback-openai-key

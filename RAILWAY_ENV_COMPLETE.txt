@@ -4,8 +4,15 @@
 # ========================================
 
 # ==========================================
-# CORE DATABASE CONFIGURATION (SUPABASE)
+# SUPER ADMIN DATABASE CONFIGURATION (OUR SUPABASE)
 # ==========================================
+# This is YOUR Supabase for platform infrastructure only
+# Used for: cache, sessions, super admin management, platform analytics
+PLATFORM_DATABASE_URL=postgresql://postgres.ompjkiiabyuegytncbwq:STEfanjohn!12@aws-0-eu-north-1.pooler.supabase.com:6543/postgres
+PLATFORM_SUPABASE_URL=https://ompjkiiabyuegytncbwq.supabase.co
+PLATFORM_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tcGpraWlhYnl1ZWd5dG5jYndxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NDg2MjYsImV4cCI6MjA2ODQyNDYyNn0.z9j2pwMfKjfR9Fs__fHkzwj9fjgiNOUQZ5Z9zv5FD6Q
+
+# Legacy alias for compatibility (points to platform database)
 DATABASE_URL=postgresql://postgres.ompjkiiabyuegytncbwq:STEfanjohn!12@aws-0-eu-north-1.pooler.supabase.com:6543/postgres
 SUPABASE_URL=https://ompjkiiabyuegytncbwq.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tcGpraWlhYnl1ZWd5dG5jYndxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NDg2MjYsImV4cCI6MjA2ODQyNDYyNn0.z9j2pwMfKjfR9Fs__fHkzwj9fjgiNOUQZ5Z9zv5FD6Q
@@ -52,11 +59,12 @@ CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS
 CORS_ALLOW_HEADERS=*
 
 # ==========================================
-# CACHING CONFIGURATION (SUPABASE-BASED)
+# CACHING CONFIGURATION (PLATFORM SUPABASE-BASED)
 # ==========================================
+# Uses YOUR Supabase for platform-level caching (not client data)
 ENABLE_CACHING=true
 CACHE_BACKEND=supabase
-CACHE_NAMESPACE=chatbot_prod
+CACHE_NAMESPACE=platform_cache
 CACHE_DEFAULT_TTL=300
 
 # Cache TTL Settings (seconds)
@@ -69,21 +77,45 @@ CACHE_TTL_HEALTH_CHECK=30
 CACHE_TTL_ANALYTICS=900
 
 # ==========================================
-# SESSION CONFIGURATION (SUPABASE-BASED)
+# SESSION CONFIGURATION (PLATFORM SUPABASE-BASED)
 # ==========================================
+# Uses YOUR Supabase for platform sessions (super admin, instance management)
 SESSION_BACKEND=supabase
 SESSION_TIMEOUT=3600
 SESSION_CLEANUP_INTERVAL=3600
 
 # ==========================================
-# AI PROVIDER CONFIGURATION
+# MULTI-TENANT ARCHITECTURE CONFIGURATION
 # ==========================================
-# NOTE: AI keys are configured in admin panel by users
-# These are fallback/default keys (optional)
+# IMPORTANT: This platform serves multiple client instances
+# Each client gets their own isolated environment
+
+# Platform Level (YOUR Supabase):
+# - Super admin management
+# - Platform caching and sessions
+# - Instance creation and monitoring
+# - Global rate limiting and security
+
+# Client Level (THEIR Supabase):
+# - Client chat data and sessions
+# - Client-specific configurations
+# - Client AI API keys
+# - Client analytics and monitoring
+
+MULTI_TENANT_MODE=true
+PLATFORM_ISOLATION_ENABLED=true
+CLIENT_DATA_ISOLATION_ENABLED=true
+
+# ==========================================
+# AI PROVIDER CONFIGURATION (CLIENT-MANAGED)
+# ==========================================
+# NOTE: AI keys are configured by EACH CLIENT in their admin panel
+# This is a "tool provider" model - clients bring their own API keys
+# NO PLATFORM-LEVEL AI KEYS - each client configures their own
 AI_FEATURES_ENABLED=true
 AI_PROVIDER_FALLBACK_ENABLED=false
-# OPENAI_API_KEY=sk-your-fallback-openai-key
-# ANTHROPIC_API_KEY=your-fallback-anthropic-key
+REQUIRE_CLIENT_AI_KEYS=true
+# NO PLATFORM AI KEYS - CLIENTS CONFIGURE THEIR OWN
 
 # AI Model Defaults
 DEFAULT_OPENAI_MODEL=gpt-3.5-turbo
@@ -210,9 +242,10 @@ MOCK_AI_RESPONSES=false
 DEMO_MODE=false
 
 # ==========================================
-# SUPABASE CACHE TABLE SETUP
+# PLATFORM SUPABASE SETUP (YOUR SUPABASE ONLY)
 # ==========================================
-# Run this SQL in your Supabase SQL editor:
+# Run this SQL in YOUR platform Supabase SQL editor:
+# This is for platform infrastructure, NOT client data
 #
 # CREATE TABLE IF NOT EXISTS cache_entries (
 #     id SERIAL PRIMARY KEY,
@@ -245,6 +278,18 @@ DEMO_MODE=false
 # CREATE INDEX IF NOT EXISTS idx_user_id ON user_sessions(user_id);
 # CREATE INDEX IF NOT EXISTS idx_session_expires ON user_sessions(expires_at);
 # CREATE INDEX IF NOT EXISTS idx_session_active ON user_sessions(is_active);
+
+# ==========================================
+# CLIENT DATABASE SETUP (EACH CLIENT'S OWN SUPABASE)
+# ==========================================
+# Each client will need to:
+# 1. Create their own Supabase project
+# 2. Configure their database connection in their admin panel
+# 3. Set up their own chat_sessions and chat_messages tables
+# 4. Configure their own AI API keys
+# 5. Manage their own user data and analytics
+#
+# The platform provides the interface, clients provide the data storage
 
 # ==========================================
 # DEPLOYMENT NOTES
