@@ -19,7 +19,11 @@ except ImportError:
 from sqlalchemy.pool import StaticPool
 
 from app.core.config import settings
-from app.models.database import Base
+try:
+    from app.models.database import Base
+except ImportError:
+    # Fallback to simplified models for Railway deployment
+    from app.models.database_simple import Base
 
 logger = logging.getLogger(__name__)
 

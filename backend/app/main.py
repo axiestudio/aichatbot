@@ -13,7 +13,11 @@ from pathlib import Path
 from typing import Dict, Any
 
 from app.core.config import settings
-from app.core.database import init_database
+try:
+    from app.core.database import init_database
+except ImportError as e:
+    logger.warning(f"Database initialization failed: {e}")
+    init_database = None
 from app.core.tracing import tracing_service
 from app.api.v1.api import api_router
 from app.api.super_admin.router import super_admin_router
@@ -71,11 +75,14 @@ async def lifespan(app: FastAPI):
             logger.error(f"Cache initialization failed: {str(e)}")
 
     # Initialize database
-    try:
-        init_database()
-        logger.info("Database initialized successfully")
-    except Exception as e:
-        logger.error(f"Database initialization failed: {str(e)}")
+    if init_database:
+        try:
+            init_database()
+            logger.info("Database initialized successfully")
+        except Exception as e:
+            logger.error(f"Database initialization failed: {str(e)}")
+    else:
+        logger.warning("Database initialization skipped - running in minimal mode")
 
     yield
 
@@ -186,7 +193,10 @@ async def startup_event():
     logger.info("🚀 Starting Modern Chatbot Backend...")
 
     # Initialize database
-    init_database()
+    if init_database:
+        init_database()
+    else:
+        logger.warning("Database initialization skipped - running in minimal mode")
 
     # Initialize tracing
     tracing_service.initialize()

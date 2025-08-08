@@ -1,9 +1,15 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, JSON, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 import uuid
+
+# SQLAlchemy 1.4 compatible UUID handling
+try:
+    from sqlalchemy.dialects.postgresql import UUID
+    USE_POSTGRESQL_UUID = True
+except ImportError:
+    USE_POSTGRESQL_UUID = False
 
 Base = declarative_base()
 
@@ -11,8 +17,9 @@ Base = declarative_base()
 class ChatSession(Base):
     """Chat session database model"""
     __tablename__ = "chat_sessions"
-    
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    # Use String for UUID to ensure compatibility
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String(255), nullable=True, index=True)
     config_id = Column(String(255), nullable=True, index=True)
     ip_address = Column(String(45), nullable=True)
@@ -37,15 +44,15 @@ class ChatMessage(Base):
     """Enhanced chat message database model"""
     __tablename__ = "chat_messages"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey('chat_sessions.id'), nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_id = Column(String(36), ForeignKey('chat_sessions.id'), nullable=False)
     content = Column(Text, nullable=False)
     role = Column(String(20), nullable=False)  # user, assistant, system
     status = Column(String(20), default='sent', nullable=False)  # sending, sent, delivered, read, failed
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     edited_at = Column(DateTime, nullable=True)
     deleted_at = Column(DateTime, nullable=True)
-    reply_to_message_id = Column(UUID(as_uuid=True), ForeignKey('chat_messages.id'), nullable=True)
+    reply_to_message_id = Column(String(36), ForeignKey('chat_messages.id'), nullable=True)
     response_time = Column(Float, nullable=True)
     tokens_used = Column(Integer, default=0)
     config_used = Column(String(255), nullable=True)

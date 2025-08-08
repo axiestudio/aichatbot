@@ -5,8 +5,8 @@
   "scripts": {
     "install-all": "cd frontend && npm install && cd ../backend && pip install -r requirements.txt",
     "dev": "concurrently \"cd backend && python start.py\" \"cd frontend && npm run dev\"",
-    "build": "echo 'Use individual service builds'",
-    "start": "cd backend && python start.py"
+    "build": "echo 'Use individual service builds - see .do/app.yaml'",
+    "start": "echo 'This is a multi-service app. Use Digital Ocean App Platform or individual service commands.'"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
