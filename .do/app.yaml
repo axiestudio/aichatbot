@@ -2,7 +2,7 @@ name: aichatbot-platform
 region: fra1
 
 services:
-  # Backend API Service (Python)
+  # Backend API Service (Python) - ONLY SERVICE
   - name: backend
     source_dir: /backend
     github:
@@ -10,10 +10,10 @@ services:
       branch: main
       deploy_on_push: true
 
-    # Explicit environment type
+    # Force Python environment detection
     environment_slug: python
 
-    # Force Python buildpack
+    # Force Python buildpack (critical for proper detection)
     buildpacks:
       - heroku/python
 
@@ -84,9 +84,11 @@ services:
 #      - key: NODE_ENV
 #        value: production
 
-databases:
-  - name: chatbot-db
-    engine: PG
-    version: "15"
-    size: basic-xs
-    num_nodes: 1
+# Database temporarily disabled - using Supabase
+# Uncomment when needed:
+# databases:
+#   - name: chatbot-db
+#     engine: PG
+#     version: "15"
+#     size: basic-xs
+#     num_nodes: 1
