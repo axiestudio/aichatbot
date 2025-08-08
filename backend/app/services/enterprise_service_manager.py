@@ -19,7 +19,7 @@ from app.services.conversation_intelligence_service import conversation_intellig
 from app.services.realtime_collaboration_service import realtime_collaboration_service
 from app.services.content_moderation_service import content_moderation_service
 from app.services.knowledge_graph_service import knowledge_graph_service
-from app.services.error_tracking_service import error_tracker
+from app.services.error_tracking_service import get_error_tracker
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)

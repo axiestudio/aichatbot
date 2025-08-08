@@ -12,7 +12,7 @@ from app.services.unified_monitoring_service import unified_monitoring
 from app.services.circuit_breaker_service import circuit_manager
 from app.services.advanced_cache_service import cache_service
 from app.services.performance_monitoring_service import performance_service
-from app.services.error_tracking_service import error_tracker
+from app.services.error_tracking_service import get_error_tracker
 from app.core.dependencies import get_current_user
 from app.core.tracing import trace_async_function, get_trace_context
 
@@ -211,7 +211,7 @@ async def get_error_analytics(
     """Get error analytics and trends (admin only)"""
     
     try:
-        return error_tracker.get_error_analytics(time_range_hours)
+        return get_error_tracker().get_error_analytics(time_range_hours)
         
     except Exception as e:
         logger.error(f"Error analytics collection failed: {e}")

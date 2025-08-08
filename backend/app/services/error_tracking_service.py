@@ -323,5 +323,12 @@ class ErrorTrackingService:
         logger.info(f"🟢 Circuit breaker CLOSED for {service}")
 
 
-# Global error tracking instance
-error_tracker = ErrorTrackingService()
+# Global error tracking instance - lazy initialization
+_error_tracker_instance = None
+
+def get_error_tracker() -> ErrorTrackingService:
+    """Get error tracker instance with lazy initialization"""
+    global _error_tracker_instance
+    if _error_tracker_instance is None:
+        _error_tracker_instance = ErrorTrackingService()
+    return _error_tracker_instance

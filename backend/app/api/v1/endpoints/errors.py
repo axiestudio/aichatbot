@@ -9,7 +9,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
-from app.services.error_tracking_service import error_tracker
+from app.services.error_tracking_service import get_error_tracker
 from app.services.unified_monitoring_service import unified_monitoring
 from app.core.tracing import trace_async_function
 
@@ -74,7 +74,7 @@ async def report_frontend_error(
         error_stack = error_report.error.get("stack", "No stack trace available")
         
         # Track the error
-        error_tracker.track_error(
+        get_error_tracker().track_error(
             Exception(error_message),
             context=error_context,
             severity="error",
@@ -139,7 +139,7 @@ async def report_client_error(
         }
         
         # Track the error
-        error_tracker.track_error(
+        get_error_tracker().track_error(
             Exception(error_report.message),
             context=error_context,
             severity="warning",
@@ -174,7 +174,7 @@ async def get_error_statistics(
     
     try:
         # Get error analytics
-        error_analytics = error_tracker.get_error_analytics(time_range_hours)
+        error_analytics = get_error_tracker().get_error_analytics(time_range_hours)
         
         # Get frontend-specific error stats
         frontend_errors = [
@@ -220,7 +220,7 @@ async def get_error_health_impact():
     
     try:
         # Get recent error analytics
-        error_analytics = error_tracker.get_error_analytics(1)  # Last hour
+        error_analytics = get_error_tracker().get_error_analytics(1)  # Last hour
         
         # Calculate health impact
         total_errors = error_analytics.get("total_errors", 0)

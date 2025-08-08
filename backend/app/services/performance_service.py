@@ -395,7 +395,7 @@ def monitor_performance(metric_name: str = None):
                     tags={"function": func.__name__, "error": error or "none"}
                 )
                 
-                performance_service._record_metric(metric)
+                get_performance_service()._record_metric(metric)
         
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
@@ -419,12 +419,19 @@ def monitor_performance(metric_name: str = None):
                     tags={"function": func.__name__, "error": error or "none"}
                 )
                 
-                performance_service._record_metric(metric)
+                get_performance_service()._record_metric(metric)
         
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
     
     return decorator
 
 
-# Global performance service instance
-performance_service = PerformanceService()
+# Global performance service instance - lazy initialization
+_performance_service_instance = None
+
+def get_performance_service() -> PerformanceService:
+    """Get performance service instance with lazy initialization"""
+    global _performance_service_instance
+    if _performance_service_instance is None:
+        _performance_service_instance = PerformanceService()
+    return _performance_service_instance

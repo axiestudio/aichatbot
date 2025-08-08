@@ -19,12 +19,12 @@ except ImportError:
     cache_service = None
 
 try:
-    from app.services.performance_service import performance_service
+    from app.services.performance_service import get_performance_service
     PERFORMANCE_AVAILABLE = True
 except ImportError:
     PERFORMANCE_AVAILABLE = False
-    performance_service = None
-from app.services.error_tracking_service import error_tracker
+    get_performance_service = lambda: None
+from app.services.error_tracking_service import get_error_tracker
 from app.services.websocket_manager import websocket_manager
 from app.core.config import settings
 from app.core.database import get_db
@@ -242,17 +242,18 @@ class UnifiedChatService:
             self.sessions[session_id] = session
             
             # Track session creation
-            performance_service.track_custom_metric(
-                "chat.session_created",
-                1,
-                {"config_id": config.id, "user_id": user_id or "anonymous"}
-            )
+            if PERFORMANCE_AVAILABLE:
+                get_performance_service().track_custom_metric(
+                    "chat.session_created",
+                    1,
+                    {"config_id": config.id, "user_id": user_id or "anonymous"}
+                )
             
             logger.info(f"Created chat session {session_id} for user {user_id}")
             return session
             
         except Exception as e:
-            error_tracker.track_error(
+            get_error_tracker().track_error(
                 e,
                 context={
                     "operation": "create_session",
@@ -335,16 +336,17 @@ class UnifiedChatService:
             
             # Track message metrics
             duration = time.time() - start_time
-            performance_service.track_custom_metric(
-                "chat.message_processed",
-                duration,
-                {
-                    "session_id": session_id,
-                    "user_id": user_id or "anonymous",
-                    "message_length": len(message),
-                    "response_length": len(response_content)
-                }
-            )
+            if PERFORMANCE_AVAILABLE:
+                get_performance_service().track_custom_metric(
+                    "chat.message_processed",
+                    duration,
+                    {
+                        "session_id": session_id,
+                        "user_id": user_id or "anonymous",
+                        "message_length": len(message),
+                        "response_length": len(response_content)
+                    }
+                )
             
             logger.info(
                 f"Processed message in session {session_id}, "
@@ -354,7 +356,7 @@ class UnifiedChatService:
             return assistant_message
             
         except Exception as e:
-            error_tracker.track_error(
+            get_error_tracker().track_error(
                 e,
                 context={
                     "operation": "send_message",
@@ -510,16 +512,17 @@ class UnifiedChatService:
             
             messages = session.messages[offset:offset + limit]
             
-            performance_service.track_custom_metric(
-                "chat.history_retrieved",
-                len(messages),
-                {"session_id": session_id, "limit": limit, "offset": offset}
-            )
+            if PERFORMANCE_AVAILABLE:
+                get_performance_service().track_custom_metric(
+                    "chat.history_retrieved",
+                    len(messages),
+                    {"session_id": session_id, "limit": limit, "offset": offset}
+                )
             
             return messages
             
         except Exception as e:
-            error_tracker.track_error(
+            get_error_tracker().track_error(
                 e,
                 context={
                     "operation": "get_session_history",
@@ -540,16 +543,17 @@ class UnifiedChatService:
                 if session.is_active and (not user_id or session.user_id == user_id)
             ]
             
-            performance_service.track_custom_metric(
-                "chat.active_sessions_retrieved",
-                len(active_sessions),
-                {"user_id": user_id or "all"}
-            )
+            if PERFORMANCE_AVAILABLE:
+                get_performance_service().track_custom_metric(
+                    "chat.active_sessions_retrieved",
+                    len(active_sessions),
+                    {"user_id": user_id or "all"}
+                )
             
             return active_sessions
             
         except Exception as e:
-            error_tracker.track_error(
+            get_error_tracker().track_error(
                 e,
                 context={
                     "operation": "get_active_sessions",
@@ -577,17 +581,18 @@ class UnifiedChatService:
                 config=self.session_cache_config
             )
             
-            performance_service.track_custom_metric(
-                "chat.session_closed",
-                1,
-                {"session_id": session_id}
-            )
+            if PERFORMANCE_AVAILABLE:
+                get_performance_service().track_custom_metric(
+                    "chat.session_closed",
+                    1,
+                    {"session_id": session_id}
+                )
             
             logger.info(f"Closed chat session {session_id}")
             return True
             
         except Exception as e:
-            error_tracker.track_error(
+            get_error_tracker().track_error(
                 e,
                 context={
                     "operation": "close_session",
@@ -609,8 +614,8 @@ class UnifiedChatService:
             "active_sessions": active_sessions,
             "total_messages": total_messages,
             "cache_stats": cache_service.get_stats(),
-            "performance_stats": performance_service.get_performance_alerts(),
-            "error_stats": error_tracker.get_error_analytics(24)
+            "performance_stats": get_performance_service().get_performance_alerts() if PERFORMANCE_AVAILABLE else {},
+            "error_stats": get_error_tracker().get_error_analytics(24)
         }
 
 
