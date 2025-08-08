@@ -27,12 +27,23 @@ services:
 
     health_check:
       http_path: /api/v1/health
+      initial_delay_seconds: 120
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 5
 
     envs:
       - key: ENVIRONMENT
         value: production
       - key: DEBUG
         value: "false"
+      - key: PORT
+        value: "8000"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
       - key: SECRET_KEY
         value: "your-super-secret-key-change-in-production-minimum-32-characters"
         type: SECRET
@@ -41,34 +52,37 @@ services:
       - key: ADMIN_PASSWORD
         value: "STEfanjohn!12"
         type: SECRET
+      - key: DATABASE_URL
+        value: "postgresql://postgres.ompjkiiabyuegytncbwq:STEfanjohn!12@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
+        type: SECRET
+      - key: SUPABASE_URL
+        value: "https://ompjkiiabyuegytncbwq.supabase.co"
+      - key: SUPABASE_ANON_KEY
+        value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tcGpraWlhYnl1ZWd5dG5jYndxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NDg2MjYsImV4cCI6MjA2ODQyNDYyNn0.z9j2pwMfKjfR9Fs__fHkzwj9fjgiNOUQZ5Z9zv5FD6Q"
+        type: SECRET
 
-  # Frontend Static Site (Node.js)
-  - name: frontend
-    source_dir: /frontend
-    github:
-      repo: axiestudio/aichatbot
-      branch: main
-      deploy_on_push: true
-
-    # Force Node.js buildpack
-    buildpacks:
-      - heroku/nodejs
-
-    build_command: npm install && npm run build
-
-    instance_count: 1
-    instance_size_slug: basic-xxs  # 512MB RAM - sufficient for static builds
-
-    static_sites:
-      - name: frontend-static
-        source_dir: dist
-        index_document: index.html
-        error_document: index.html
-        catchall_document: index.html
-
-    envs:
-      - key: NODE_ENV
-        value: production
+# Frontend temporarily disabled - focus on backend first
+# Uncomment when backend is working:
+#  - name: frontend
+#    source_dir: /frontend
+#    github:
+#      repo: axiestudio/aichatbot
+#      branch: main
+#      deploy_on_push: true
+#    buildpacks:
+#      - heroku/nodejs
+#    build_command: npm install && npm run build
+#    instance_count: 1
+#    instance_size_slug: basic-xxs
+#    static_sites:
+#      - name: frontend-static
+#        source_dir: dist
+#        index_document: index.html
+#        error_document: index.html
+#        catchall_document: index.html
+#    envs:
+#      - key: NODE_ENV
+#        value: production
 
 databases:
   - name: chatbot-db
