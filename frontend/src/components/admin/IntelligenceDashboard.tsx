@@ -98,20 +98,20 @@ const IntelligenceDashboard: React.FC = () => {
 
       setData({
         conversation_intelligence: {
-          total_analyzed: conversationData.total_analyzed || 0,
-          sentiment_distribution: conversationData.sentiment_distribution || {},
-          intent_distribution: conversationData.intent_distribution || {},
-          avg_satisfaction: conversationData.avg_satisfaction || 0,
-          avg_urgency: conversationData.avg_urgency || 0,
-          top_topics: conversationData.top_topics || []
+          total_analyzed: conversationData?.total_analyzed || 0,
+          sentiment_distribution: conversationData?.sentiment_distribution || {},
+          intent_distribution: conversationData?.intent_distribution || {},
+          avg_satisfaction: conversationData?.avg_satisfaction || 0,
+          avg_urgency: conversationData?.avg_urgency || 0,
+          top_topics: conversationData?.top_topics || []
         },
         content_moderation: {
-          total_moderated: moderationData.total_content_moderated || 0,
-          action_distribution: moderationData.action_distribution || {},
-          toxicity_distribution: moderationData.toxicity_distribution || {},
-          block_rate: moderationData.block_rate || 0,
-          flag_rate: moderationData.flag_rate || 0,
-          ai_safety_score: moderationData.average_ai_safety_score || 1.0
+          total_moderated: moderationData?.total_content_moderated || 0,
+          action_distribution: moderationData?.action_distribution || {},
+          toxicity_distribution: moderationData?.toxicity_distribution || {},
+          block_rate: moderationData?.block_rate || 0,
+          flag_rate: moderationData?.flag_rate || 0,
+          ai_safety_score: moderationData?.average_ai_safety_score || 1.0
         },
         knowledge_graph: {
           total_entities: knowledgeData.total_entities || 0,
