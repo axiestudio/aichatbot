@@ -25,8 +25,14 @@ logger = logging.getLogger(__name__)
 def main():
     """Production-ready main function"""
     try:
+        logger.info("🔍 Step 1: Importing settings...")
         # Import settings after path setup
         from app.core.config import settings
+        logger.info("✅ Settings imported successfully")
+
+        logger.info("🔍 Step 2: Importing main app...")
+        from app.main import app
+        logger.info("✅ Main app imported successfully")
 
         logger.info("🚀 STARTING AI CHATBOT PLATFORM")
         logger.info(f"Environment: {settings.ENVIRONMENT}")
@@ -62,8 +68,15 @@ def main():
         logger.info("✅ Starting uvicorn server...")
         uvicorn.run(**uvicorn_config)
 
+    except ImportError as e:
+        logger.error(f"❌ IMPORT FAILED: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
     except Exception as e:
         logger.error(f"❌ STARTUP FAILED: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 if __name__ == "__main__":

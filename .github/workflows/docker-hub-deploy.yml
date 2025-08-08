@@ -133,20 +133,43 @@ jobs:
         
     - name: 🔍 Test Docker Image
       run: |
+        echo "🧪 Testing Docker image..."
         docker run --rm -d --name test-container -p 8000:8000 \
           -e ENVIRONMENT=production \
           -e DEBUG=false \
           -e DATABASE_URL=sqlite:///test.db \
           ${{ env.DOCKER_IMAGE }}:latest
-        
-        # Wait for container to start
-        sleep 30
-        
-        # Test health endpoint
-        curl -f http://localhost:8000/api/v1/health || exit 1
-        
-        # Cleanup
+
+        echo "⏳ Waiting for container to start..."
+        sleep 15
+
+        echo "📋 Checking container status..."
+        docker ps -a
+
+        echo "📝 Container logs:"
+        docker logs test-container
+
+        echo "🔍 Testing health endpoints..."
+        for i in {1..6}; do
+          echo "Attempt $i/6..."
+          if curl -f http://localhost:8000/health || curl -f http://localhost:8000/api/v1/health; then
+            echo "✅ Health check passed!"
+            break
+          elif [ $i -eq 6 ]; then
+            echo "❌ Health check failed after 6 attempts"
+            echo "📝 Final container logs:"
+            docker logs test-container
+            docker stop test-container
+            exit 1
+          else
+            echo "⏳ Waiting 10 seconds before retry..."
+            sleep 10
+          fi
+        done
+
+        echo "🛑 Stopping test container..."
         docker stop test-container
+        echo "✅ Docker image test completed!"
         
     - name: 📊 Image Summary
       run: |
