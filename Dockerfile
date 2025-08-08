@@ -8,7 +8,7 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 
 # Install frontend dependencies
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy frontend source
 COPY frontend/ ./
@@ -27,19 +27,26 @@ ENV PORT=8000
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (optimized for Railway)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
         curl \
         postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
+        gcc \
+        g++ \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/*
 
 # Copy backend requirements
 COPY backend/requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (optimized for Railway)
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip cache purge
 
 # Copy backend source
 COPY backend/ ./
