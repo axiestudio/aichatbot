@@ -17,11 +17,14 @@ if __name__ == "__main__":
     print(f"Environment: {settings.ENVIRONMENT}")
     print(f"Debug mode: {settings.DEBUG}")
     print(f"Log level: {settings.LOG_LEVEL}")
-    
+
+    # Get port from environment or default to 8000
+    port = int(os.getenv("PORT", "8000"))
+
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8000,
+        port=port,
         reload=settings.DEBUG,
         log_level=settings.LOG_LEVEL.lower(),
         access_log=True

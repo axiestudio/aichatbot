@@ -4,8 +4,18 @@ from typing import AsyncGenerator, Optional
 from contextlib import asynccontextmanager
 
 from sqlalchemy import create_engine, MetaData
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, Session
+
+# SQLAlchemy version compatibility
+try:
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+    SQLALCHEMY_2_0 = True
+except ImportError:
+    # Fallback for SQLAlchemy 1.4
+    SQLALCHEMY_2_0 = False
+    def async_sessionmaker(engine, class_=AsyncSession, **kwargs):
+        return sessionmaker(engine, class_=class_, **kwargs)
 from sqlalchemy.pool import StaticPool
 
 from app.core.config import settings
