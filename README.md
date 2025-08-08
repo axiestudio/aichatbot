@@ -9,6 +9,27 @@
 **PRODUCTION OPTIMIZED:** Performance, security, scalability
 
 [![Deploy on Digital Ocean](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/axiestudio/aichatbot)
+[![Docker Hub](https://img.shields.io/docker/pulls/axiestudio/aichatbot?logo=docker&logoColor=white)](https://hub.docker.com/r/axiestudio/aichatbot)
+[![GitHub Actions](https://github.com/axiestudio/aichatbot/workflows/🐳%20Docker%20Hub%20Deployment/badge.svg)](https://github.com/axiestudio/aichatbot/actions)
+
+## 🚀 **QUICK START - DOCKER DEPLOYMENT**
+
+### **Option 1: Docker Hub (Instant Deploy)**
+```bash
+docker run -p 8000:8000 axiestudio/aichatbot:latest
+```
+
+### **Option 2: Docker Compose (Full Stack)**
+```bash
+git clone https://github.com/axiestudio/aichatbot.git
+cd aichatbot
+docker-compose up -d
+```
+
+### **Option 3: Digital Ocean App Platform**
+Click the "Deploy to Digital Ocean" button above for one-click deployment.
+
+---
 
 ## ✨ Features
 

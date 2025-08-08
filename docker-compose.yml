@@ -1,0 +1,102 @@
+# 🚀 AI CHATBOT PLATFORM - DOCKER COMPOSE
+# Local development and production deployment
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # AI CHATBOT BACKEND SERVICE
+  # ============================================================================
+  chatbot-backend:
+    image: axiestudio/aichatbot:latest
+    container_name: aichatbot-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Core Configuration
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - PORT=8000
+      
+      # Security
+      - SECRET_KEY=prod-chatbot-secret-key-2024-docker-deployment-secure
+      - JWT_SECRET_KEY=prod-jwt-secret-key-2024-docker-chatbot-platform-secure
+      
+      # Admin Configuration
+      - ADMIN_USERNAME=stefan@axiestudio.se
+      - ADMIN_PASSWORD=STEfanjohn!12
+      
+      # Database Configuration (Supabase)
+      - DATABASE_URL=postgresql://postgres.ompjkiiabyuegytncbwq:STEfanjohn!12@aws-0-eu-north-1.pooler.supabase.com:6543/postgres
+      - SUPABASE_URL=https://ompjkiiabyuegytncbwq.supabase.co
+      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tcGpraWlhYnl1ZWd5dG5jYndxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NDg2MjYsImV4cCI6MjA2ODQyNDYyNn0.z9j2pwMfKjfR9Fs__fHkzwj9fjgiNOUQZ5Z9zv5FD6Q
+      
+      # API Configuration
+      - API_V1_STR=/api/v1
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      
+      # File Upload
+      - MAX_FILE_SIZE=10485760
+      - UPLOAD_DIR=./uploads
+      
+      # Rate Limiting
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_WINDOW=60
+      
+      # Caching
+      - ENABLE_CACHING=true
+      - CACHE_BACKEND=supabase
+      
+      # CORS
+      - CORS_ORIGINS=*
+      
+    volumes:
+      - chatbot_uploads:/app/uploads
+      - chatbot_logs:/app/logs
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    
+    networks:
+      - chatbot-network
+
+  # ============================================================================
+  # NGINX REVERSE PROXY (OPTIONAL)
+  # ============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: aichatbot-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - chatbot-backend
+    networks:
+      - chatbot-network
+    profiles:
+      - production
+
+# ============================================================================
+# VOLUMES
+# ============================================================================
+volumes:
+  chatbot_uploads:
+    driver: local
+  chatbot_logs:
+    driver: local
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+networks:
+  chatbot-network:
+    driver: bridge

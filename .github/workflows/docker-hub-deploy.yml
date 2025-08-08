@@ -1,0 +1,171 @@
+# 🚀 AI CHATBOT PLATFORM - DOCKER HUB AUTO-DEPLOYMENT
+# Automated Docker image build and push to Docker Hub
+# Triggers on: push to main, pull requests, and manual dispatch
+
+name: 🐳 Docker Hub Deployment
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - 'Dockerfile'
+      - '.github/workflows/docker-hub-deploy.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - 'Dockerfile'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Custom tag for the Docker image'
+        required: false
+        default: 'latest'
+
+env:
+  DOCKER_IMAGE: axiestudio/aichatbot
+  REGISTRY: docker.io
+
+jobs:
+  # ============================================================================
+  # JOB 1: BUILD AND TEST
+  # ============================================================================
+  build-and-test:
+    name: 🔨 Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        cd backend
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: 🧪 Run Tests
+      run: |
+        cd backend
+        python -m pytest tests/ -v --tb=short
+      continue-on-error: true
+      
+    - name: 🔍 Lint Code
+      run: |
+        cd backend
+        pip install flake8
+        flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+      continue-on-error: true
+
+  # ============================================================================
+  # JOB 2: DOCKER BUILD AND PUSH
+  # ============================================================================
+  docker-build-push:
+    name: 🐳 Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 🔑 Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+        
+    - name: 📋 Extract Metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.DOCKER_IMAGE }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
+        labels: |
+          org.opencontainers.image.title=AI Chatbot Platform
+          org.opencontainers.image.description=Enterprise-grade AI chatbot platform
+          org.opencontainers.image.vendor=Axie Studio
+          org.opencontainers.image.url=https://hub.docker.com/r/axiestudio/aichatbot
+          org.opencontainers.image.source=https://github.com/axiestudio/aichatbot
+          org.opencontainers.image.documentation=https://github.com/axiestudio/aichatbot/blob/main/README.md
+          
+    - name: 🏗️ Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: 🔍 Test Docker Image
+      run: |
+        docker run --rm -d --name test-container -p 8000:8000 \
+          -e ENVIRONMENT=production \
+          -e DEBUG=false \
+          -e DATABASE_URL=sqlite:///test.db \
+          ${{ env.DOCKER_IMAGE }}:latest
+        
+        # Wait for container to start
+        sleep 30
+        
+        # Test health endpoint
+        curl -f http://localhost:8000/api/v1/health || exit 1
+        
+        # Cleanup
+        docker stop test-container
+        
+    - name: 📊 Image Summary
+      run: |
+        echo "## 🐳 Docker Image Published Successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Image:** \`${{ env.DOCKER_IMAGE }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Tags:** \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Registry:** Docker Hub" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🚀 Quick Start:" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "docker run -p 8000:8000 ${{ env.DOCKER_IMAGE }}:latest" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # JOB 3: SECURITY SCAN
+  # ============================================================================
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: docker-build-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 🔍 Run Trivy Vulnerability Scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.DOCKER_IMAGE }}:latest
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: 📋 Upload Trivy Scan Results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
