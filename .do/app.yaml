@@ -43,7 +43,7 @@ services:
       branch: main
       deploy_on_push: true
 
-    build_command: npm ci && npm run build
+    build_command: npm install && npm run build
 
     instance_count: 1
     instance_size_slug: basic-xxs  # 512MB RAM - sufficient for static builds
