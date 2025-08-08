@@ -43,16 +43,17 @@
 - **Source Directory:** `/backend`
 - **Build Command:** `pip install -r requirements.txt`
 - **Run Command:** `python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- **Instance Size:** Basic ($5/month)
+- **Instance Size:** Professional XS (1GB RAM, 1 vCPU) - $12/month
+- **Port:** 8000
 - **Health Check:** `/api/v1/health`
 
 #### **Frontend Service:**
-- **Name:** `frontend`  
+- **Name:** `frontend`
 - **Source Directory:** `/frontend`
 - **Build Command:** `npm ci && npm run build`
 - **Output Directory:** `dist`
 - **Type:** Static Site
-- **Instance Size:** Basic ($3/month)
+- **Instance Size:** Basic XXS (512MB RAM) - $5/month
 
 ### 3. **Add Database**
 1. Click **"Add Database"**
@@ -126,11 +127,10 @@ After deployment:
 
 | Service | Size | Monthly Cost |
 |---------|------|--------------|
-| Backend | Basic | $5.00 |
-| Frontend | Basic | $3.00 |
-| PostgreSQL | Basic | $15.00 |
-| Redis | Basic | $5.00 |
-| **Total** | | **$28.00/month** |
+| Backend | Professional XS (1GB RAM) | $12.00 |
+| Frontend | Basic XXS (512MB RAM) | $5.00 |
+| PostgreSQL | Professional XS | $25.00 |
+| **Total** | | **$42.00/month** |
 
 ## 🔧 Configuration Files
 
