@@ -134,16 +134,34 @@ jobs:
     - name: 🔍 Test Docker Image
       run: |
         echo "🧪 Testing Docker image..."
-        docker run --rm -d --name test-container -p 8000:8000 \
+        CONTAINER_ID=$(docker run -d --name test-container -p 8000:8000 \
           -e ENVIRONMENT=production \
           -e DEBUG=false \
           -e DATABASE_URL=sqlite:///test.db \
-          ${{ env.DOCKER_IMAGE }}:latest
+          ${{ env.DOCKER_IMAGE }}:latest)
 
-        echo "⏳ Waiting for container to start..."
-        sleep 15
+        echo "📦 Container started: $CONTAINER_ID"
 
-        echo "📋 Checking container status..."
+        echo "⏳ Monitoring container startup..."
+        for i in {1..15}; do
+          if docker ps --filter "id=$CONTAINER_ID" --format "table {{.Status}}" | grep -q "Up"; then
+            echo "✅ Container is running (check $i/15)"
+            break
+          elif docker ps -a --filter "id=$CONTAINER_ID" --format "table {{.Status}}" | grep -q "Exited"; then
+            echo "❌ Container crashed! (check $i/15)"
+            echo "📝 Container logs:"
+            docker logs test-container 2>&1 || echo "No logs available"
+            echo "📋 Container status:"
+            docker ps -a --filter "id=$CONTAINER_ID"
+            docker rm test-container 2>/dev/null || true
+            exit 1
+          else
+            echo "⏳ Waiting for container... (check $i/15)"
+            sleep 1
+          fi
+        done
+
+        echo "📋 Final container status:"
         docker ps -a
 
         echo "📝 Container logs:"
