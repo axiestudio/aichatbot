@@ -19,6 +19,10 @@ except ImportError:
 from sqlalchemy.pool import StaticPool
 
 from app.core.config import settings
+
+# Set up logger first
+logger = logging.getLogger(__name__)
+
 # Import Railway-compatible database models
 try:
     from app.models.database import Base
@@ -34,8 +38,6 @@ except Exception as e:
         from sqlalchemy.ext.declarative import declarative_base
         Base = declarative_base()
         logger.warning("🚨 Using emergency minimal Base")
-
-logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
