@@ -1,25 +1,48 @@
-name: aichatbot-platform
-region: fra1
+name: aichatbot
+region: ams
+
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
+
+envs:
+- key: ENVIRONMENT
+  scope: RUN_AND_BUILD_TIME
+  value: production
+- key: DATABASE_URL
+  scope: RUN_AND_BUILD_TIME
+  value: postgresql://postgres.ompjkiiabyuegytncbwq:STEfanjohn!12@aws-0-eu-north-1.pooler.supabase.com:6543/postgres
+- key: ADMIN_USERNAME
+  scope: RUN_AND_BUILD_TIME
+  value: stefan@axiestudio.se
+- key: ADMIN_PASSWORD
+  scope: RUN_AND_BUILD_TIME
+  value: STEfanjohn!12
+
+features:
+- buildpack-stack=ubuntu-22
 
 services:
-  # Backend API Service (Docker-based)
-  - name: backend
+  # Backend API Service (Python)
+  - name: aichatbot2
+    environment_slug: python
+    source_dir: /backend
     github:
       repo: axiestudio/aichatbot
       branch: main
       deploy_on_push: true
 
-    # Use Dockerfile instead of buildpacks
-    dockerfile_path: Dockerfile
+    build_command: pip install -r requirements.txt
+    run_command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
     instance_count: 1
-    instance_size_slug: basic-xxs  # Start with smallest size
+    instance_size_slug: apps-s-1vcpu-2gb
 
     http_port: 8000
 
     health_check:
       http_path: /api/v1/health
-      initial_delay_seconds: 180  # Give Docker more time to start
+      initial_delay_seconds: 120
       period_seconds: 10
       timeout_seconds: 10
       success_threshold: 1
@@ -27,60 +50,58 @@ services:
 
     envs:
       - key: ENVIRONMENT
+        scope: RUN_AND_BUILD_TIME
         value: production
       - key: DEBUG
+        scope: RUN_AND_BUILD_TIME
         value: "false"
-      - key: PORT
-        value: "8000"
+      - key: LOG_LEVEL
+        scope: RUN_AND_BUILD_TIME
+        value: INFO
       - key: PYTHONUNBUFFERED
+        scope: RUN_AND_BUILD_TIME
         value: "1"
       - key: PYTHONDONTWRITEBYTECODE
+        scope: RUN_AND_BUILD_TIME
         value: "1"
       - key: SECRET_KEY
-        value: "your-super-secret-key-change-in-production-minimum-32-characters"
-        type: SECRET
+        scope: RUN_AND_BUILD_TIME
+        value: your-super-secret-key-change-in-production-minimum-32-characters
+      - key: JWT_SECRET_KEY
+        scope: RUN_AND_BUILD_TIME
+        value: your-jwt-secret-key-change-in-production-minimum-32-characters
       - key: ADMIN_USERNAME
-        value: "stefan@axiestudio.se"
+        scope: RUN_AND_BUILD_TIME
+        value: stefan@axiestudio.se
       - key: ADMIN_PASSWORD
-        value: "STEfanjohn!12"
-        type: SECRET
+        scope: RUN_AND_BUILD_TIME
+        value: STEfanjohn!12
       - key: DATABASE_URL
-        value: "postgresql://postgres.ompjkiiabyuegytncbwq:STEfanjohn!12@aws-0-eu-north-1.pooler.supabase.com:6543/postgres"
-        type: SECRET
+        scope: RUN_AND_BUILD_TIME
+        value: postgresql://postgres.ompjkiiabyuegytncbwq:STEfanjohn!12@aws-0-eu-north-1.pooler.supabase.com:6543/postgres
       - key: SUPABASE_URL
-        value: "https://ompjkiiabyuegytncbwq.supabase.co"
+        scope: RUN_AND_BUILD_TIME
+        value: https://ompjkiiabyuegytncbwq.supabase.co
       - key: SUPABASE_ANON_KEY
-        value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tcGpraWlhYnl1ZWd5dG5jYndxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NDg2MjYsImV4cCI6MjA2ODQyNDYyNn0.z9j2pwMfKjfR9Fs__fHkzwj9fjgiNOUQZ5Z9zv5FD6Q"
-        type: SECRET
+        scope: RUN_AND_BUILD_TIME
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tcGpraWlhYnl1ZWd5dG5jYndxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NDg2MjYsImV4cCI6MjA2ODQyNDYyNn0.z9j2pwMfKjfR9Fs__fHkzwj9fjgiNOUQZ5Z9zv5FD6Q
+      - key: API_V1_STR
+        scope: RUN_AND_BUILD_TIME
+        value: /api/v1
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        scope: RUN_AND_BUILD_TIME
+        value: "30"
+      - key: MAX_FILE_SIZE
+        scope: RUN_AND_BUILD_TIME
+        value: "10485760"
+      - key: UPLOAD_DIR
+        scope: RUN_AND_BUILD_TIME
+        value: ./uploads
+      - key: RATE_LIMIT_REQUESTS
+        scope: RUN_AND_BUILD_TIME
+        value: "100"
+      - key: RATE_LIMIT_WINDOW
+        scope: RUN_AND_BUILD_TIME
+        value: "60"
 
-# Frontend temporarily disabled - focus on backend first
-# Uncomment when backend is working:
-#  - name: frontend
-#    source_dir: /frontend
-#    github:
-#      repo: axiestudio/aichatbot
-#      branch: main
-#      deploy_on_push: true
-#    buildpacks:
-#      - heroku/nodejs
-#    build_command: npm install && npm run build
-#    instance_count: 1
-#    instance_size_slug: basic-xxs
-#    static_sites:
-#      - name: frontend-static
-#        source_dir: dist
-#        index_document: index.html
-#        error_document: index.html
-#        catchall_document: index.html
-#    envs:
-#      - key: NODE_ENV
-#        value: production
-
-# Database temporarily disabled - using Supabase
-# Uncomment when needed:
-# databases:
-#   - name: chatbot-db
-#     engine: PG
-#     version: "15"
-#     size: basic-xs
-#     num_nodes: 1
+# Frontend and database services can be added later when needed
