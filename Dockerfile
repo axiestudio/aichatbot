@@ -1,23 +1,22 @@
-# Multi-stage build for Railway deployment
-FROM node:18-alpine AS frontend-builder
+# Railway Optimized - Frontend build stage
+FROM node:18-alpine AS frontend-build
 
-# Set working directory for frontend
-WORKDIR /app/frontend
+WORKDIR /app
 
-# Copy frontend package files
+# Copy package files
 COPY frontend/package*.json ./
 
-# Install frontend dependencies
-RUN npm install --only=production
+# Install dependencies with memory optimization
+RUN npm install --silent
 
 # Copy frontend source
 COPY frontend/ ./
 
-# Build frontend
-RUN npm run build
+# Build with memory constraints for Railway
+RUN NODE_OPTIONS="--max-old-space-size=512" npm run build
 
-# Python backend stage
-FROM python:3.11-slim AS backend
+# Backend stage
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -27,32 +26,26 @@ ENV PORT=8000
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies (optimized for Railway)
+# Install minimal system dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        build-essential \
         curl \
         postgresql-client \
-        gcc \
-        g++ \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/* \
-    && rm -rf /var/tmp/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements
 COPY backend/requirements.txt .
 
-# Install Python dependencies (optimized for Railway)
+# Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt \
-    && pip cache purge
+    && pip install --no-cache-dir -r requirements.txt
 
 # Copy backend source
 COPY backend/ ./
 
-# Copy built frontend
-COPY --from=frontend-builder /app/frontend/dist ./static
+# Copy built frontend from build stage
+COPY --from=frontend-build /app/dist ./static
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
@@ -60,10 +53,6 @@ USER appuser
 
 # Expose port
 EXPOSE $PORT
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:$PORT/health || exit 1
 
 # Start command
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

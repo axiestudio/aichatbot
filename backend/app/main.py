@@ -1,11 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 from datetime import datetime
 import logging
 import psutil
 import time
+import os
+from pathlib import Path
 from typing import Dict, Any
 
 from app.core.config import settings
@@ -155,6 +159,14 @@ app.include_router(super_admin_router, prefix="/api/v1")
 app.include_router(websocket_router, prefix="/api/v1")
 app.include_router(health_router, prefix="/api/v1")
 
+# Mount static files for frontend (Railway deployment)
+static_dir = Path("./static")
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+    logger.info("✅ Static files mounted from ./static")
+else:
+    logger.warning("⚠️ Static directory not found - frontend assets not available")
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -217,7 +229,15 @@ async def shutdown_event():
 
 @app.get("/")
 async def root():
-    """Root endpoint"""
+    """Root endpoint - serve frontend if available, otherwise API info"""
+    static_dir = Path("./static")
+    index_file = static_dir / "index.html"
+
+    # If frontend is available, serve it
+    if index_file.exists():
+        return FileResponse(str(index_file))
+
+    # Otherwise return API info
     return {
         "message": "Modern Chatbot Backend API",
         "version": "1.0.0",
@@ -231,6 +251,25 @@ async def root():
             "Multi-provider AI Support"
         ]
     }
+
+
+# Catch-all route for SPA (Single Page Application) routing
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Serve SPA for all non-API routes"""
+    # Skip API routes
+    if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("redoc"):
+        raise HTTPException(status_code=404, detail="Not found")
+
+    static_dir = Path("./static")
+    index_file = static_dir / "index.html"
+
+    # If frontend is available, serve index.html for SPA routing
+    if index_file.exists():
+        return FileResponse(str(index_file))
+
+    # If no frontend, return 404
+    raise HTTPException(status_code=404, detail="Frontend not available")
 
 
 @app.get("/health")
