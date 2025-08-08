@@ -18,7 +18,13 @@ from app.core.tracing import tracing_service
 from app.api.v1.api import api_router
 from app.api.super_admin.router import super_admin_router
 from app.services.websocket_manager import websocket_router
-from app.services.enterprise_service_manager import enterprise_service_manager
+# Import enterprise services with fallback
+try:
+    from app.services.enterprise_service_manager import enterprise_service_manager
+    ENTERPRISE_AVAILABLE = True
+except ImportError:
+    ENTERPRISE_AVAILABLE = False
+    logger.warning("Enterprise services not available - running in basic mode")
 from app.api.v1.endpoints.health import router as health_router
 from app.core.logging import setup_logging
 from app.startup.railway_setup import run_railway_setup
@@ -26,7 +32,13 @@ from app.middleware.rate_limit import rate_limit_middleware
 from app.middleware.error_handler import ErrorHandlingMiddleware
 from app.middleware.security_enhanced import SecurityEnhancementMiddleware
 from app.middleware.multi_tenant import MultiTenantMiddleware
-from app.services.advanced_cache_service import cache_service
+# Import cache service with fallback
+try:
+    from app.services.advanced_cache_service import cache_service
+    CACHE_AVAILABLE = True
+except ImportError:
+    CACHE_AVAILABLE = False
+    logger.warning("Advanced cache service not available")
 from app.services.unified_monitoring_service import unified_monitoring
 
 # Setup logging
@@ -51,7 +63,7 @@ async def lifespan(app: FastAPI):
             logger.error(f"Tracing initialization failed: {str(e)}")
 
     # Initialize cache service
-    if settings.ENABLE_CACHING:
+    if CACHE_AVAILABLE and settings.ENABLE_CACHING:
         try:
             await cache_service.initialize()
             logger.info("Cache service initialized")

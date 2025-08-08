@@ -1,0 +1,106 @@
+# Digital Ocean App Platform Environment Variables Template
+# Copy these variables to your DO App Platform environment configuration
+
+# =============================================================================
+# GLOBAL ENVIRONMENT VARIABLES (All Services)
+# =============================================================================
+
+ENVIRONMENT=production
+DEBUG=false
+LOG_LEVEL=INFO
+PYTHONUNBUFFERED=1
+PYTHONDONTWRITEBYTECODE=1
+
+# =============================================================================
+# BACKEND SERVICE ENVIRONMENT VARIABLES
+# =============================================================================
+
+# Security Keys (CHANGE THESE IN PRODUCTION!)
+SECRET_KEY=your-super-secret-key-change-in-production-minimum-32-characters
+JWT_SECRET_KEY=your-jwt-secret-key-change-in-production-minimum-32-characters
+
+# Admin Credentials
+ADMIN_USERNAME=stefan@axiestudio.se
+ADMIN_PASSWORD=STEfanjohn!12
+
+# Database Configuration (Auto-configured by DO)
+# DATABASE_URL will be automatically set by Digital Ocean
+# Format: postgresql://username:password@host:port/database
+
+# Redis Configuration (if using Redis service)
+# REDIS_URL will be automatically set if you add Redis service
+# Format: redis://redis:6379/0
+
+# CORS and Security Settings
+CORS_ORIGINS=https://your-app-name.ondigitalocean.app,http://localhost:3000
+ALLOWED_HOSTS=your-app-name.ondigitalocean.app,localhost
+
+# API Configuration
+API_V1_STR=/api/v1
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# File Upload Settings
+MAX_FILE_SIZE=10485760
+UPLOAD_DIR=./uploads
+
+# Rate Limiting
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_WINDOW=60
+
+# =============================================================================
+# FRONTEND SERVICE ENVIRONMENT VARIABLES
+# =============================================================================
+
+# Build Environment
+NODE_ENV=production
+
+# API Endpoints (DO will auto-populate these)
+VITE_API_URL=${backend.PUBLIC_URL}
+VITE_WS_URL=${backend.PUBLIC_URL}
+
+# =============================================================================
+# OPTIONAL SERVICES CONFIGURATION
+# =============================================================================
+
+# OpenAI Configuration (if using AI features)
+# OPENAI_API_KEY=your-openai-api-key
+
+# Anthropic Configuration (if using Claude)
+# ANTHROPIC_API_KEY=your-anthropic-api-key
+
+# Supabase Configuration (if using Supabase)
+# SUPABASE_URL=your-supabase-url
+# SUPABASE_ANON_KEY=your-supabase-anon-key
+# SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+
+# Email Configuration (if using email features)
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_USER=your-email@gmail.com
+# SMTP_PASSWORD=your-app-password
+
+# Monitoring and Analytics (optional)
+# SENTRY_DSN=your-sentry-dsn
+# GOOGLE_ANALYTICS_ID=your-ga-id
+
+# =============================================================================
+# DIGITAL OCEAN SPECIFIC NOTES
+# =============================================================================
+
+# 1. DATABASE_URL is automatically provided when you add a PostgreSQL database
+# 2. Redis URL is automatically provided when you add a Redis service
+# 3. Use ${service-name.PUBLIC_URL} to reference other services
+# 4. Mark sensitive values as "SECRET" type in DO dashboard
+# 5. Environment variables are automatically injected at runtime
+
+# =============================================================================
+# SECURITY RECOMMENDATIONS
+# =============================================================================
+
+# 1. Change all default passwords and secret keys
+# 2. Use strong, unique passwords (minimum 32 characters)
+# 3. Enable 2FA on your Digital Ocean account
+# 4. Regularly rotate secrets and API keys
+# 5. Use DO's secret management for sensitive values
+# 6. Restrict CORS origins to your actual domains
+# 7. Monitor access logs and set up alerts

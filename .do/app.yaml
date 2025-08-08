@@ -1,0 +1,62 @@
+name: aichatbot-platform
+region: fra1
+
+services:
+  # Backend API Service
+  - name: backend
+    source_dir: /backend
+    github:
+      repo: axiestudio/aichatbot
+      branch: main
+      deploy_on_push: true
+
+    build_command: pip install -r requirements.txt
+    run_command: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+    instance_count: 1
+    instance_size_slug: basic-xxs
+
+    health_check:
+      http_path: /api/v1/health
+
+    envs:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        value: "your-super-secret-key-change-in-production-minimum-32-characters"
+        type: SECRET
+      - key: ADMIN_USERNAME
+        value: "stefan@axiestudio.se"
+      - key: ADMIN_PASSWORD
+        value: "STEfanjohn!12"
+        type: SECRET
+
+  # Frontend Static Site
+  - name: frontend
+    source_dir: /frontend
+    github:
+      repo: axiestudio/aichatbot
+      branch: main
+      deploy_on_push: true
+
+    build_command: npm ci && npm run build
+
+    static_sites:
+      - name: frontend-static
+        source_dir: dist
+        index_document: index.html
+        error_document: index.html
+        catchall_document: index.html
+
+    envs:
+      - key: NODE_ENV
+        value: production
+
+databases:
+  - name: chatbot-db
+    engine: PG
+    version: "15"
+    size: basic-xs
+    num_nodes: 1

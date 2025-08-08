@@ -1,21 +1,4 @@
-# Railway Optimized - Frontend build stage
-FROM node:18-alpine AS frontend-build
-
-WORKDIR /app
-
-# Copy package files
-COPY frontend/package*.json ./
-
-# Install dependencies with memory optimization
-RUN npm install --silent
-
-# Copy frontend source
-COPY frontend/ ./
-
-# Build with memory constraints for Railway
-RUN NODE_OPTIONS="--max-old-space-size=512" npm run build
-
-# Backend stage
+# Railway Backend-Only Deployment
 FROM python:3.11-slim
 
 # Set environment variables
@@ -44,8 +27,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy backend source
 COPY backend/ ./
 
-# Copy built frontend from build stage
-COPY --from=frontend-build /app/dist ./static
+# Create minimal static frontend
+RUN mkdir -p ./static && \
+    echo '<!DOCTYPE html><html><head><title>AI Chatbot</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:system-ui,sans-serif;margin:0;padding:20px;background:#f5f5f5}h1{color:#333}.container{max-width:800px;margin:0 auto;background:white;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}.status{color:#10b981;font-weight:bold}.api-link{color:#3b82f6;text-decoration:none}.api-link:hover{text-decoration:underline}</style></head><body><div class="container"><h1>🤖 AI Chatbot Platform</h1><p class="status">✅ Backend API is running successfully!</p><h2>Available Endpoints:</h2><ul><li><a href="/api/v1/health" class="api-link">Health Check</a></li><li><a href="/docs" class="api-link">API Documentation</a></li><li><a href="/api/v1/admin" class="api-link">Admin API</a></li></ul><p><strong>Admin Access:</strong> stefan@axiestudio.se</p><p><em>Frontend will be deployed separately or integrated later.</em></p></div></body></html>' > ./static/index.html
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
