@@ -247,7 +247,7 @@ const EmbeddableChat: React.FC<EmbeddableChatProps> = ({
       )}
 
       {/* Custom Styles */}
-      <style jsx>{`
+      <style>{`
         .embeddable-chat {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
         }

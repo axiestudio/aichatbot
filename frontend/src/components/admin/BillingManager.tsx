@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  CreditCard, 
-  Crown, 
-  Zap, 
-  Check, 
-  X, 
+import { useState, useEffect } from 'react';
+import {
+  CreditCard,
+  Crown,
+  Zap,
+  Check,
+  X,
   Star,
-  Calendar,
   TrendingUp,
   Shield,
   Sparkles,
@@ -15,15 +14,16 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+import { BillingPlan } from '../../types';
 
 const BillingManager = () => {
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
-  const [subscription, setSubscription] = useState(null);
-  const [plans, setPlans] = useState([]);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [plans, setPlans] = useState<BillingPlan[]>([]);
   const [upgrading, setUpgrading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [billingCycle, setBillingCycle] = useState('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   const tenantId = user?.tenantId || user?.id || 'demo-tenant';
 
@@ -59,7 +59,7 @@ const BillingManager = () => {
     }
   };
 
-  const handleUpgrade = async (planTier) => {
+  const handleUpgrade = async (planTier: string) => {
     try {
       setUpgrading(true);
       setSelectedPlan(planTier);
@@ -104,7 +104,7 @@ const BillingManager = () => {
     }
   };
 
-  const startTrial = async (tier) => {
+  const startTrial = async (tier: string) => {
     try {
       const response = await fetch(`/api/v1/subscription/${tenantId}/trial/start`, {
         method: 'POST',
@@ -134,7 +134,7 @@ const BillingManager = () => {
     }
   };
 
-  const getTierIcon = (tier) => {
+  const getTierIcon = (tier: string) => {
     switch (tier) {
       case 'free': return <Zap className="w-5 h-5" />;
       case 'premium': return <Crown className="w-5 h-5" />;
@@ -143,7 +143,7 @@ const BillingManager = () => {
     }
   };
 
-  const getTierColor = (tier) => {
+  const getTierColor = (tier: string) => {
     switch (tier) {
       case 'free': return 'text-gray-600';
       case 'premium': return 'text-purple-600';
@@ -313,7 +313,7 @@ const BillingManager = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {plans.map((plan) => (
+          {plans.map((plan: BillingPlan) => (
             <div 
               key={plan.id}
               className={`relative border rounded-xl p-6 ${

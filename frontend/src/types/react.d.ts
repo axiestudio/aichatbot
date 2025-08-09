@@ -18,3 +18,9 @@ declare module 'react/jsx-dev-runtime' {
   export const jsxs: any;
   export const Fragment: any;
 }
+
+declare global {
+  interface Window {
+    initAxieChatWidget?: (config: any) => void;
+  }
+}

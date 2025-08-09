@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Save, TestTube, CheckCircle, XCircle, Plus, Trash2 } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 import { ApiConfig as ApiConfigType } from '../../types'
 
 const defaultConfig: ApiConfigType = {

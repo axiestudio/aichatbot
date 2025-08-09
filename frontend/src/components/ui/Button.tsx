@@ -1,6 +1,6 @@
 import React from 'react'
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
@@ -15,7 +15,7 @@ const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   children,
   className = '',
-  disabled,
+  disabled = false,
   ...props
 }) => {
   const baseClasses = `
@@ -25,7 +25,7 @@ const Button: React.FC<ButtonProps> = ({
     ${fullWidth ? 'w-full' : ''}
   `
 
-  const variants = {
+  const variants: Record<string, string> = {
     primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 shadow-sm hover:shadow-md',
     secondary: 'bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500 shadow-sm hover:shadow-md',
     outline: 'border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 focus:ring-blue-500',
@@ -33,7 +33,7 @@ const Button: React.FC<ButtonProps> = ({
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-sm hover:shadow-md'
   }
 
-  const sizes = {
+  const sizes: Record<string, string> = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-4 py-2 text-sm',
     lg: 'px-6 py-3 text-base'

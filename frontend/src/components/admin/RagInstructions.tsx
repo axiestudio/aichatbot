@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Save, FileText, Eye, RotateCcw } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 import { RagInstruction } from '../../types'
 
 const defaultInstruction: RagInstruction = {

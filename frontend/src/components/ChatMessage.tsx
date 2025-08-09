@@ -25,6 +25,8 @@ interface ChatMessageProps {
   onCopy?: (content: string) => void
   onDelete?: (messageId: string) => void
   showActions?: boolean
+  showTimestamp?: boolean
+  showAvatar?: boolean
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -34,7 +36,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   onReaction,
   onCopy,
   onDelete,
-  showActions = true
+  showActions = true,
+  showTimestamp = true,
+  showAvatar = false
 }) => {
   const [showActionsMenu, setShowActionsMenu] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)

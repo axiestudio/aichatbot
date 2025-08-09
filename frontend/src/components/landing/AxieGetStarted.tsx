@@ -30,7 +30,7 @@ interface Plan {
 }
 
 const AxieGetStarted: React.FC = () => {
-  const steps = [
+  const steps: Step[] = [
     {
       number: "01",
       title: "Sign Up",
@@ -51,7 +51,7 @@ const AxieGetStarted: React.FC = () => {
     }
   ];
 
-  const plans = [
+  const plans: Plan[] = [
     {
       name: "Free",
       price: "$0",

@@ -49,8 +49,8 @@ export const useChat = (sessionId?: string) => {
   const [typingUsers, setTypingUsers] = useState<string[]>([])
 
   const wsRef = useRef<WebSocket | null>(null)
-  const reconnectTimeoutRef = useRef<number>()
-  const typingTimeoutRef = useRef<number>()
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const currentSessionId = sessionId || 'default'
 
   // WebSocket connection management

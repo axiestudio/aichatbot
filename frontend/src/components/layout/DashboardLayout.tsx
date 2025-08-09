@@ -109,7 +109,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   )}
                   <span className="flex-1">{item.name}</span>
                   {item.badge && (
-                    <Badge variant="secondary" size="sm">
+                    <Badge variant="default" size="sm">
                       {item.badge}
                     </Badge>
                   )}

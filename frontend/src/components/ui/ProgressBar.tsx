@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface ProgressBarProps {
+export interface ProgressBarProps {
   progress: number; // 0-100
   className?: string;
   size?: 'sm' | 'md' | 'lg';

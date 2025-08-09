@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Eye, Save, RotateCcw } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 import { ChatConfig } from '../../types'
 
 const defaultConfig: ChatConfig = {

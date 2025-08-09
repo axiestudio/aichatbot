@@ -53,6 +53,8 @@ export interface ChatConfig {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  showTimestamps?: boolean;
+  showAvatars?: boolean;
 }
 
 export interface ApiConfig {
@@ -110,6 +112,26 @@ export interface AdminUser {
   role: 'admin' | 'user';
   createdAt: Date;
   lastLogin: Date;
+  tenantId?: string;
+  subscription?: {
+    tier: 'free' | 'premium' | 'enterprise';
+    status: 'active' | 'inactive' | 'cancelled' | 'past_due';
+    current_period_end?: Date;
+    cancel_at_period_end?: boolean;
+  };
+  usage?: {
+    conversations: number;
+    messages: number;
+    storage: number;
+    api_calls: number;
+  };
+  permissions?: {
+    can_access_analytics: boolean;
+    can_manage_billing: boolean;
+    can_customize_branding: boolean;
+    can_export_data: boolean;
+    can_manage_users: boolean;
+  };
 }
 
 export interface Analytics {
@@ -125,4 +147,49 @@ export interface Analytics {
     chats: number;
     messages: number;
   }>;
+}
+
+export interface BillingPlan {
+  id: string;
+  tier: 'free' | 'premium' | 'enterprise';
+  name: string;
+  description: string;
+  priceMonthly: number;
+  priceYearly: number;
+  features: {
+    removeBranding?: boolean;
+    customBranding?: boolean;
+    conversationsLimit: number; // -1 for unlimited
+    advancedAnalytics?: boolean;
+    prioritySupport?: boolean;
+    apiAccess?: boolean;
+    customIntegrations?: boolean;
+  };
+  popular?: boolean;
+}
+
+export interface IntelligenceAnalytics {
+  total_analyzed: number;
+  sentiment_distribution: Record<string, number>;
+  intent_distribution: Record<string, number>;
+  avg_satisfaction: number;
+  avg_urgency: number;
+  top_topics: Array<{ topic: string; count: number }>;
+}
+
+export interface ModerationAnalytics {
+  total_content_moderated: number;
+  action_distribution: Record<string, number>;
+  toxicity_distribution: Record<string, number>;
+  block_rate: number;
+  flag_rate: number;
+  average_ai_safety_score: number;
+}
+
+export interface KnowledgeGraphAnalytics {
+  total_entities: number;
+  total_relationships: number;
+  entity_types: Record<string, number>;
+  relationship_types: Record<string, number>;
+  extraction_stats: Record<string, number>;
 }

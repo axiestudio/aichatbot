@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Crown, Lock, Mail, Eye, EyeOff, Shield } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 

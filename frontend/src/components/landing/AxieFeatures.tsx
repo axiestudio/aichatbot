@@ -14,8 +14,15 @@ import {
   Users
 } from 'lucide-react';
 
+interface Feature {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  color: string;
+}
+
 const AxieFeatures = () => {
-  const features = [
+  const features: Feature[] = [
     {
       icon: <MessageCircle className="w-8 h-8" />,
       title: "Embeddable Chat Widget",

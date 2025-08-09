@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
 import { useChatStore } from '../stores/chatStore'
 import { ChatConfig } from '../types'
 import EnhancedChatInterface from '../components/chat/EnhancedChatInterface'
@@ -24,20 +23,16 @@ const defaultConfig: ChatConfig = {
 }
 
 export default function ChatInterface() {
-  const { configId } = useParams()
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [liveConfig, setLiveConfig] = useState<any>(null)
-  const [isConfigLoading, setIsConfigLoading] = useState(true)
+  const [_liveConfig, setLiveConfig] = useState<any>(null)
+  const [_isConfigLoading, setIsConfigLoading] = useState(true)
   const [websocket, setWebsocket] = useState<WebSocket | null>(null)
 
   const {
     messages,
-    isLoading,
     config,
     addMessage,
-    setConfig,
-    sendMessage,
-    clearChat
+    setConfig
   } = useChatStore()
 
   useEffect(() => {
@@ -149,15 +144,12 @@ export default function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const handleSendMessage = async (message: string) => {
-    if (!message.trim() || isLoading) return
-    await sendMessage(message.trim())
-  }
+
 
   return (
     <div className="h-screen bg-gray-50 p-4">
       <EnhancedChatInterface
-        config={config}
+        config={config || undefined}
         onConfigChange={setConfig}
         className="h-full max-w-4xl mx-auto"
       />

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Brain, 
-  Shield, 
-  MessageSquare, 
-  Network, 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle, 
-  Users, 
-  Eye, 
+import {
+  Brain,
+  Shield,
+  MessageSquare,
+  Network,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle,
+  Users,
+  Eye,
   Zap,
   BarChart3,
   Activity,
@@ -20,31 +20,12 @@ import {
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Button from '../ui/Button'
+import { IntelligenceAnalytics, ModerationAnalytics, KnowledgeGraphAnalytics } from '../../types'
 
 interface IntelligenceData {
-  conversation_intelligence: {
-    total_analyzed: number
-    sentiment_distribution: Record<string, number>
-    intent_distribution: Record<string, number>
-    avg_satisfaction: number
-    avg_urgency: number
-    top_topics: string[]
-  }
-  content_moderation: {
-    total_moderated: number
-    action_distribution: Record<string, number>
-    toxicity_distribution: Record<string, number>
-    block_rate: number
-    flag_rate: number
-    ai_safety_score: number
-  }
-  knowledge_graph: {
-    total_entities: number
-    total_relationships: number
-    entity_types: Record<string, number>
-    relationship_types: Record<string, number>
-    extraction_stats: Record<string, number>
-  }
+  conversation_intelligence: IntelligenceAnalytics
+  content_moderation: ModerationAnalytics
+  knowledge_graph: KnowledgeGraphAnalytics
   collaboration: {
     active_sessions: number
     total_users: number

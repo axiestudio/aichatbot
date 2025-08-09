@@ -6,7 +6,7 @@ import Input from '../ui/Input';
 import Modal from '../ui/Modal';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
-import ProgressBar from '../ui/ProgressBar';
+import { ProgressBar } from '../ui/ProgressBar';
 
 interface Document {
   id: string;
@@ -586,3 +586,6 @@ export const DocumentManager: React.FC = () => {
     </div>
   );
 };
+
+export { DocumentManager };
+export default DocumentManager;

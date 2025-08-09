@@ -29,10 +29,10 @@ const MetricCard: React.FC<MetricCardProps> = ({
   variant = 'default',
   size = 'md',
   loading = false,
-  className,
+  className = '',
   onClick
 }) => {
-  const variantClasses = {
+  const variantClasses: Record<string, string> = {
     default: 'border-gray-200',
     success: 'border-green-200 bg-green-50',
     warning: 'border-yellow-200 bg-yellow-50',
@@ -40,7 +40,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
     info: 'border-blue-200 bg-blue-50'
   }
 
-  const iconVariantClasses = {
+  const iconVariantClasses: Record<string, string> = {
     default: 'text-gray-600',
     success: 'text-green-600',
     warning: 'text-yellow-600',
@@ -48,13 +48,13 @@ const MetricCard: React.FC<MetricCardProps> = ({
     info: 'text-blue-600'
   }
 
-  const sizeClasses = {
+  const sizeClasses: Record<string, string> = {
     sm: 'p-4',
     md: 'p-6',
     lg: 'p-8'
   }
 
-  const valueSizeClasses = {
+  const valueSizeClasses: Record<string, string> = {
     sm: 'text-xl font-semibold',
     md: 'text-2xl font-bold',
     lg: 'text-3xl font-bold'
@@ -107,16 +107,23 @@ const MetricCard: React.FC<MetricCardProps> = ({
     )
   }
 
+  const CardWrapper = onClick ? 'button' : 'div';
+
   return (
-    <Card 
+    <CardWrapper
       className={cn(
-        sizeClasses[size], 
-        variantClasses[variant],
-        onClick && 'cursor-pointer hover:shadow-md transition-shadow duration-200',
-        className
+        'w-full text-left',
+        onClick && 'cursor-pointer hover:shadow-md transition-shadow duration-200'
       )}
       onClick={onClick}
     >
+      <Card
+        className={cn(
+          sizeClasses[size],
+          variantClasses[variant],
+          className
+        )}
+      >
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-medium text-gray-600 truncate">{title}</h3>
         {Icon && (
@@ -144,6 +151,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
         </div>
       )}
     </Card>
+    </CardWrapper>
   )
 }
 
