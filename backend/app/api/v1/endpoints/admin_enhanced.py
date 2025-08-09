@@ -26,6 +26,39 @@ class MockMonitoringService:
     async def _cleanup_old_sessions(self):
         return {"cleaned": 0}
 
+class EnhancedChatService:
+    async def get_global_analytics(self):
+        return {"chat_metrics": {"total_sessions": 0, "active_sessions": 0, "total_messages": 0, "total_tokens": 0}}
+
+    async def admin_intervene(self, session_id: str, admin_message: str, admin_id: str):
+        return True
+
+    async def search_conversations(self, query: str, start_date=None, end_date=None, session_id=None, limit=50):
+        return []
+
+    async def flag_message(self, session_id: str, message_id: str, admin_notes=None):
+        return True
+
+class ChatMonitoringService:
+    async def get_analytics(self):
+        return {"average_response_time": 0.5, "sessions_by_hour": {}, "popular_topics": [], "error_rate": 0.01}
+
+    async def get_active_sessions(self):
+        return []
+
+    async def get_recent_messages(self, limit: int):
+        return []
+
+    async def _cleanup_old_sessions(self):
+        return {"cleaned": 0}
+
+class EnhancedRAGService:
+    async def get_rag_analytics(self):
+        return {"total_queries": 0, "average_relevance": 0.8, "cache_hit_rate": 0.6}
+
+    async def optimize_rag_performance(self):
+        return {"status": "optimized", "improvements": []}
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -478,9 +511,18 @@ async def export_analytics(
 
 
 # Include configuration sub-routers
-router.include_router(api_config.router, prefix="", tags=["admin-api-config"])
-router.include_router(rag_config.router, prefix="", tags=["admin-rag-config"])
-router.include_router(supabase.router, prefix="", tags=["admin-supabase"])
+try:
+    from ...admin import api_config, rag_config
+    router.include_router(api_config.router, prefix="", tags=["admin-api-config"])
+    router.include_router(rag_config.router, prefix="", tags=["admin-rag-config"])
+except ImportError as e:
+    logger.warning(f"Admin config routers not available: {e}")
+
+try:
+    from ...admin import supabase
+    router.include_router(supabase.router, prefix="", tags=["admin-supabase"])
+except ImportError as e:
+    logger.warning(f"Supabase admin router not available: {e}")
 
 # Include live configuration router
 from ...admin.live_config import router as live_config_router

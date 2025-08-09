@@ -49,8 +49,8 @@ export const useChat = (sessionId?: string) => {
   const [typingUsers, setTypingUsers] = useState<string[]>([])
 
   const wsRef = useRef<WebSocket | null>(null)
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
-  const typingTimeoutRef = useRef<NodeJS.Timeout>()
+  const reconnectTimeoutRef = useRef<number>()
+  const typingTimeoutRef = useRef<number>()
   const currentSessionId = sessionId || 'default'
 
   // WebSocket connection management
@@ -66,7 +66,7 @@ export const useChat = (sessionId?: string) => {
       setError(null)
     }
 
-    wsRef.current.onmessage = (event) => {
+    wsRef.current.onmessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data)
         handleWebSocketMessage(data)
@@ -85,7 +85,7 @@ export const useChat = (sessionId?: string) => {
       }, 3000)
     }
 
-    wsRef.current.onerror = (error) => {
+    wsRef.current.onerror = (error: Event) => {
       console.error('WebSocket error:', error)
       setError('Connection error')
     }
@@ -126,9 +126,9 @@ export const useChat = (sessionId?: string) => {
 
       case 'user_typing':
         if (data.is_typing) {
-          setTypingUsers(prev => [...prev.filter(u => u !== data.user_id), data.user_id])
+          setTypingUsers((prev: string[]) => [...prev.filter((u: string) => u !== data.user_id), data.user_id])
         } else {
-          setTypingUsers(prev => prev.filter(u => u !== data.user_id))
+          setTypingUsers((prev: string[]) => prev.filter((u: string) => u !== data.user_id))
         }
         break
 
@@ -159,7 +159,7 @@ export const useChat = (sessionId?: string) => {
   const sendMessage = useCallback(async (content: string, attachments: File[] = []) => {
     if (!content.trim() && attachments.length === 0) return
 
-    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 
     // Create user message
     const userMessage: Message = {
@@ -289,8 +289,8 @@ export const useChat = (sessionId?: string) => {
   }, [])
 
   // Reply to message
-  const replyToMessage = useCallback(async (replyToMessage: Message, content: string, attachments: File[] = []) => {
-    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  const replyToMessage = useCallback(async (replyToMessage: Message, content: string, _attachments: File[] = []) => {
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 
     const userMessage: Message = {
       id: messageId,

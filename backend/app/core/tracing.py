@@ -5,15 +5,24 @@ OpenTelemetry setup for comprehensive request tracing
 
 import logging
 from typing import Dict, Any, Optional
-from opentelemetry import trace, baggage
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.jaeger.thrift import JaegerExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.semconv.resource import ResourceAttributes
+from contextlib import contextmanager
+
+# Try to import OpenTelemetry components with fallback
+try:
+    from opentelemetry import trace, baggage
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.requests import RequestsInstrumentor
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.semconv.resource import ResourceAttributes
+    OPENTELEMETRY_AVAILABLE = True
+except ImportError:
+    OPENTELEMETRY_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("OpenTelemetry not available - using fallback tracing")
 
 from app.core.config import settings
 
@@ -29,8 +38,14 @@ class TracingService:
         self.is_initialized = False
     
     def initialize(self, app=None):
-        """Initialize distributed tracing"""
-        
+        """Initialize distributed tracing with OpenTelemetry or fallback"""
+        if self.is_initialized:
+            return
+
+        if not OPENTELEMETRY_AVAILABLE:
+            self._initialize_fallback()
+            return
+
         try:
             # Create resource with service information
             resource = Resource.create({
@@ -78,8 +93,14 @@ class TracingService:
             logger.info("Distributed tracing initialized successfully")
             
         except Exception as e:
-            logger.error(f"Failed to initialize tracing: {e}")
-            self.is_initialized = False
+            logger.error(f"Failed to initialize OpenTelemetry tracing: {e}")
+            self._initialize_fallback()
+
+    def _initialize_fallback(self):
+        """Initialize fallback tracing when OpenTelemetry is not available"""
+        self.tracer = FallbackTracer()
+        self.is_initialized = True
+        logger.info("✅ Fallback tracing initialized")
     
     def start_span(
         self,
@@ -160,6 +181,39 @@ class TracingService:
             return self.tracer.start_span(name, context=context)
         else:
             return self.tracer.start_span(name)
+
+
+class FallbackTracer:
+    """Fallback tracer when OpenTelemetry is not available"""
+
+    def start_span(self, name: str, **kwargs):
+        return FallbackSpan(name, **kwargs)
+
+
+class FallbackSpan:
+    """Fallback span implementation"""
+
+    def __init__(self, name: str, **kwargs):
+        self.name = name
+        self.attributes = kwargs
+
+    def set_attribute(self, key: str, value):
+        self.attributes[key] = value
+
+    def add_event(self, name: str, attributes=None):
+        pass
+
+    def set_status(self, status):
+        pass
+
+    def end(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.end()
 
 
 # Global tracing service instance

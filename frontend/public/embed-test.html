@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axie Studio Chat Widget Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #8B5CF6;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .test-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .test-section h2 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px 10px 10px 0;
+            transition: transform 0.2s ease;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .config-display {
+            background: #1f2937;
+            color: #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        .status {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .card h3 {
+            margin-top: 0;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Axie Studio Chat Widget Test</h1>
+            <p>Test the embedded chat widget functionality and customization options</p>
+        </div>
+
+        <div class="test-section">
+            <h2>
+                🚀 Widget Initialization Test
+            </h2>
+            <p>Test different widget configurations and see how they work on your website.</p>
+            
+            <button class="test-button" onclick="testDefaultWidget()">Test Default Widget</button>
+            <button class="test-button" onclick="testCustomWidget()">Test Custom Colors</button>
+            <button class="test-button" onclick="testAutoOpenWidget()">Test Auto-Open</button>
+            <button class="test-button" onclick="testLargeWidget()">Test Large Size</button>
+            <button class="test-button" onclick="destroyWidget()">Destroy Widget</button>
+            
+            <div id="status"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>
+                ⚙️ Configuration Examples
+            </h2>
+            <p>Here are different configuration examples you can use:</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>Basic Configuration</h3>
+                    <div class="config-display">
+&lt;script&gt;
+  window.chatWidgetConfig = {
+    tenantId: 'demo-tenant',
+    position: 'bottom-right',
+    theme: 'auto',
+    showLauncher: true
+  };
+&lt;/script&gt;
+&lt;script src="/api/v1/embed/demo-tenant/widget.js" async&gt;&lt;/script&gt;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Custom Branding</h3>
+                    <div class="config-display">
+&lt;script&gt;
+  window.chatWidgetConfig = {
+    tenantId: 'demo-tenant',
+    customColors: {
+      primary: '#8B5CF6',
+      secondary: '#EC4899'
+    },
+    launcherText: 'Chat with Axie Studio'
+  };
+&lt;/script&gt;
+&lt;script src="/api/v1/embed/demo-tenant/widget.js" async&gt;&lt;/script&gt;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Auto-Open Configuration</h3>
+                    <div class="config-display">
+&lt;script&gt;
+  window.chatWidgetConfig = {
+    tenantId: 'demo-tenant',
+    autoOpen: true,
+    openDelay: 3000,
+    size: 'large'
+  };
+&lt;/script&gt;
+&lt;script src="/api/v1/embed/demo-tenant/widget.js" async&gt;&lt;/script&gt;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Security Configuration</h3>
+                    <div class="config-display">
+&lt;script&gt;
+  window.chatWidgetConfig = {
+    tenantId: 'demo-tenant',
+    allowedDomains: [
+      'example.com',
+      '*.example.com',
+      'demo.site'
+    ]
+  };
+&lt;/script&gt;
+&lt;script src="/api/v1/embed/demo-tenant/widget.js" async&gt;&lt;/script&gt;
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>
+                📊 Integration Status
+            </h2>
+            <div id="integration-status">
+                <div class="status info">
+                    🔄 Checking widget integration...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Axie Studio Chat Widget -->
+    <script>
+        // Test functions
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function testDefaultWidget() {
+            showStatus('🚀 Initializing default widget...', 'info');
+            
+            const config = {
+                tenantId: 'demo-tenant',
+                position: 'bottom-right',
+                theme: 'auto',
+                showLauncher: true
+            };
+            
+            if (window.initAxieChatWidget) {
+                window.initAxieChatWidget(config);
+                showStatus('✅ Default widget initialized successfully!', 'success');
+            } else {
+                showStatus('❌ Widget script not loaded. Please refresh the page.', 'error');
+            }
+        }
+
+        function testCustomWidget() {
+            showStatus('🎨 Initializing custom branded widget...', 'info');
+            
+            const config = {
+                tenantId: 'demo-tenant',
+                position: 'bottom-left',
+                theme: 'dark',
+                customColors: {
+                    primary: '#8B5CF6',
+                    secondary: '#EC4899'
+                },
+                launcherText: 'Chat with Axie Studio',
+                showPoweredBy: true
+            };
+            
+            if (window.initAxieChatWidget) {
+                window.initAxieChatWidget(config);
+                showStatus('✅ Custom widget initialized with Axie Studio branding!', 'success');
+            } else {
+                showStatus('❌ Widget script not loaded. Please refresh the page.', 'error');
+            }
+        }
+
+        function testAutoOpenWidget() {
+            showStatus('⚡ Initializing auto-open widget...', 'info');
+            
+            const config = {
+                tenantId: 'demo-tenant',
+                position: 'bottom-right',
+                autoOpen: true,
+                openDelay: 1000,
+                size: 'medium'
+            };
+            
+            if (window.initAxieChatWidget) {
+                window.initAxieChatWidget(config);
+                showStatus('✅ Auto-open widget will open in 1 second!', 'success');
+            } else {
+                showStatus('❌ Widget script not loaded. Please refresh the page.', 'error');
+            }
+        }
+
+        function testLargeWidget() {
+            showStatus('📱 Initializing large widget...', 'info');
+            
+            const config = {
+                tenantId: 'demo-tenant',
+                position: 'bottom-right',
+                size: 'large',
+                theme: 'light'
+            };
+            
+            if (window.initAxieChatWidget) {
+                window.initAxieChatWidget(config);
+                showStatus('✅ Large widget initialized!', 'success');
+            } else {
+                showStatus('❌ Widget script not loaded. Please refresh the page.', 'error');
+            }
+        }
+
+        function destroyWidget() {
+            if (window.axieChatWidget) {
+                window.axieChatWidget.destroy();
+                showStatus('🗑️ Widget destroyed successfully!', 'success');
+            } else {
+                showStatus('⚠️ No widget to destroy.', 'info');
+            }
+        }
+
+        // Check integration status
+        function checkIntegrationStatus() {
+            const statusDiv = document.getElementById('integration-status');
+            
+            setTimeout(() => {
+                if (window.AxieChatWidget) {
+                    statusDiv.innerHTML = `
+                        <div class="status success">✅ Axie Studio Chat Widget loaded successfully!</div>
+                        <div class="status info">📦 Widget Version: ${window.AxieChatWidget.version || '2.0.0'}</div>
+                        <div class="status info">🔧 API Available: initAxieChatWidget()</div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `
+                        <div class="status error">❌ Widget script failed to load</div>
+                        <div class="status info">🔄 Make sure the backend server is running</div>
+                    `;
+                }
+            }, 2000);
+        }
+
+        // Initialize status check
+        checkIntegrationStatus();
+    </script>
+
+    <!-- Load the actual widget script -->
+    <script src="/api/v1/embed/demo-tenant/widget.js" async></script>
+</body>
+</html>

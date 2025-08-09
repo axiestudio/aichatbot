@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
+import AxieStudioLanding from './pages/AxieStudioLanding'
 import ChatInterface from './pages/ChatInterface'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminLogin from './pages/AdminLogin'
@@ -46,8 +47,11 @@ function App() {
           element={isSuperAdmin ? <SuperAdminDashboard /> : <Navigate to="/super-admin/login" />}
         />
 
-        {/* Landing page */}
-        <Route path="/" element={<LandingPage />} />
+        {/* Landing page - New Axie Studio branded landing */}
+        <Route path="/" element={<AxieStudioLanding />} />
+
+        {/* Old landing page for reference */}
+        <Route path="/old-landing" element={<LandingPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>

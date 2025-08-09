@@ -3,6 +3,14 @@ from typing import List, Optional
 import os
 import json
 
+# Import enterprise settings
+try:
+    from app.core.enterprise_config import enterprise_settings
+    ENTERPRISE_CONFIG_AVAILABLE = True
+except ImportError:
+    ENTERPRISE_CONFIG_AVAILABLE = False
+    enterprise_settings = None
+
 
 def safe_getenv_list(key: str, default: str = "") -> List[str]:
     """Safely get environment variable as list, avoiding JSON parsing issues"""

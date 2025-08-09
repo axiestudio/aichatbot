@@ -10,7 +10,9 @@ import asyncio
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime, timedelta
 
-from app.models.database import ChatSession, ChatMessage, LiveConfiguration
+from app.models.database import ChatSession, ChatMessage, LiveConfiguration, ApiConfiguration, RagInstruction
+from app.models.config import ChatConfig, CacheConfig, CircuitBreakerConfig
+from app.utils.decorators import cached, performance_monitor, circuit_breaker
 try:
     from app.services.cache_service import cache_service
     CACHE_AVAILABLE = True
@@ -328,11 +330,13 @@ class UnifiedChatService:
             session.messages.append(assistant_message)
             
             # Update session cache
-            await cache_service.set(
-                f"session:{session_id}",
-                session,
-                config=self.session_cache_config
-            )
+            if CACHE_AVAILABLE and cache_service:
+                await cache_service.set(
+                    f"session:{session_id}",
+                    session,
+                    cache_type="user_session",
+                    ttl=self.session_cache_config.ttl
+                )
             
             # Track message metrics
             duration = time.time() - start_time
@@ -486,10 +490,12 @@ class UnifiedChatService:
             return self.sessions[session_id]
         
         # Try cache
-        cached_session = await cache_service.get(
-            f"session:{session_id}",
-            config=self.session_cache_config
-        )
+        cached_session = None
+        if CACHE_AVAILABLE and cache_service:
+            cached_session = await cache_service.get(
+                f"session:{session_id}",
+                cache_type="user_session"
+            )
         
         if cached_session:
             self.sessions[session_id] = cached_session
@@ -575,11 +581,13 @@ class UnifiedChatService:
             session.updated_at = datetime.utcnow()
             
             # Update cache
-            await cache_service.set(
-                f"session:{session_id}",
-                session,
-                config=self.session_cache_config
-            )
+            if CACHE_AVAILABLE and cache_service:
+                await cache_service.set(
+                    f"session:{session_id}",
+                    session,
+                    cache_type="user_session",
+                    ttl=self.session_cache_config.ttl
+                )
             
             if PERFORMANCE_AVAILABLE:
                 get_performance_service().track_custom_metric(
@@ -602,7 +610,7 @@ class UnifiedChatService:
             )
             return False
     
-    def get_service_stats(self) -> Dict[str, Any]:
+    async def get_service_stats(self) -> Dict[str, Any]:
         """Get comprehensive service statistics"""
         
         total_sessions = len(self.sessions)
@@ -613,7 +621,7 @@ class UnifiedChatService:
             "total_sessions": total_sessions,
             "active_sessions": active_sessions,
             "total_messages": total_messages,
-            "cache_stats": cache_service.get_stats(),
+            "cache_stats": await cache_service.get_stats() if CACHE_AVAILABLE and cache_service else {},
             "performance_stats": get_performance_service().get_performance_alerts() if PERFORMANCE_AVAILABLE else {},
             "error_stats": get_error_tracker().get_error_analytics(24)
         }

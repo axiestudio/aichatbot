@@ -12,9 +12,9 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from ..core.database import get_db
-from ..core.config import settings
-from ..models.database import ChatInstance, SuperAdmin, InstanceAdmin
+from app.core.database import get_db, engine
+from app.core.config import settings
+from app.models.database import ChatInstance, SuperAdmin, InstanceAdmin
 
 logger = logging.getLogger(__name__)
 

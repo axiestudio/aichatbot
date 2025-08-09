@@ -90,9 +90,9 @@ USER chatbot
 # Expose port
 EXPOSE 8000
 
-# Health check
+# Health check - using enterprise health endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
-    CMD curl -f http://localhost:8000/health || curl -f http://localhost:8000/api/v1/health/ || exit 1
+    CMD curl -f http://localhost:8000/api/v1/health || curl -f http://localhost:8000/api/v1/ops/health/comprehensive || exit 1
 
-# Production startup - using minimal test for debugging
-CMD ["python", "test_minimal.py"]
+# Production startup command
+CMD ["python", "start.py"]

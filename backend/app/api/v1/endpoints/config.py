@@ -2,8 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 import logging
 
-from app.models.config import ApiConfig, SupabaseConfig, RagInstruction
-from app.models.chat import ChatConfig
+from app.models.config import ApiConfig, SupabaseConfig, RagInstruction, ChatConfig
 from app.services.config_service import ConfigService
 from app.core.dependencies import get_config_service
 

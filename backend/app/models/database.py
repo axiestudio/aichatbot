@@ -3,7 +3,7 @@ Simplified database models for Railway deployment
 SQLAlchemy 1.4 compatible version
 """
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, JSON, ForeignKey, Index
+from sqlalchemy import Column, Integer, BigInteger, String, Text, DateTime, Boolean, Float, JSON, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -187,7 +187,7 @@ class InstanceAdmin(Base):
 class LiveConfiguration(Base):
     """Live configuration database model"""
     __tablename__ = "live_configurations"
-    
+
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     instance_id = Column(String(36), ForeignKey('chat_instances.id'), nullable=False)
     chat_title = Column(String(255), default="AI Assistant")
@@ -199,8 +199,10 @@ class LiveConfiguration(Base):
     accent_color = Column(String(7), default="#10b981")
     background_color = Column(String(7), default="#ffffff")
     text_color = Column(String(7), default="#1f2937")
+    logo_url = Column(String(500), nullable=True)
     company_name = Column(String(255), nullable=True)
     show_branding = Column(Boolean, default=True)
+    custom_css = Column(Text, nullable=True)
     typing_indicator = Column(Boolean, default=True)
     sound_enabled = Column(Boolean, default=False)
     auto_scroll = Column(Boolean, default=True)
@@ -211,4 +213,103 @@ class LiveConfiguration(Base):
     messages_per_minute = Column(Integer, default=10)
     messages_per_hour = Column(Integer, default=100)
     conversation_starters = Column(JSON, nullable=True)
+    quick_replies = Column(JSON, nullable=True)
+    custom_fields = Column(JSON, nullable=True)
+    is_active = Column(Boolean, default=True)
+    last_updated_by = Column(String(36), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ApiConfiguration(Base):
+    """API configuration database model"""
+    __tablename__ = "api_configurations"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(255), nullable=False)
+    provider = Column(String(50), nullable=False)  # openai, anthropic, etc.
+    api_key = Column(String(500), nullable=False)
+    model = Column(String(100), nullable=False)
+    temperature = Column(Float, default=0.7)
+    max_tokens = Column(Integer, default=1000)
+    top_p = Column(Float, default=1.0)
+    frequency_penalty = Column(Float, default=0.0)
+    presence_penalty = Column(Float, default=0.0)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class RagInstruction(Base):
+    """RAG instruction database model"""
+    __tablename__ = "rag_instructions"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(255), nullable=False)
+    system_prompt = Column(Text, nullable=False)
+    context_prompt = Column(Text, nullable=False)
+    max_context_length = Column(Integer, default=2000)
+    search_limit = Column(Integer, default=5)
+    similarity_threshold = Column(Float, default=0.7)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ConfigurationHistory(Base):
+    """Configuration change history database model"""
+    __tablename__ = "configuration_history"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    instance_id = Column(String(36), ForeignKey('chat_instances.id'), nullable=False)
+    configuration_id = Column(String(36), ForeignKey('live_configurations.id'), nullable=False)
+    changed_by = Column(String(36), nullable=False)
+    change_type = Column(String(50), nullable=False)  # update, rollback, create
+    changes = Column(JSON, nullable=True)
+    previous_values = Column(JSON, nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class Document(Base):
+    """Document database model"""
+    __tablename__ = "documents"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    filename = Column(String(255), nullable=False)
+    original_filename = Column(String(255), nullable=False)
+    file_path = Column(String(500), nullable=False)
+    file_size = Column(BigInteger, nullable=False)
+    file_type = Column(String(50), nullable=False)
+    mime_type = Column(String(100), nullable=False)
+    user_id = Column(String(36), nullable=True)
+    status = Column(String(50), default="uploaded")  # uploaded, processing, processed, error
+    processed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class DocumentChunk(Base):
+    """Document chunk database model for search indexing"""
+    __tablename__ = "document_chunks"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    document_id = Column(String(36), ForeignKey('documents.id'), nullable=False)
+    content = Column(Text, nullable=False)
+    chunk_index = Column(Integer, nullable=False)
+    start_char = Column(Integer, nullable=False)
+    end_char = Column(Integer, nullable=False)
+    embedding = Column(JSON, nullable=True)  # Vector embedding for search
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class DocumentMetadata(Base):
+    """Document metadata database model"""
+    __tablename__ = "document_metadata"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    document_id = Column(String(36), ForeignKey('documents.id'), nullable=False)
+    key = Column(String(100), nullable=False)
+    value = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

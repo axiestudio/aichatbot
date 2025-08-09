@@ -32,12 +32,15 @@ except ImportError:
 from app.api.v1.api import api_router
 from app.api.super_admin.router import super_admin_router
 from app.services.websocket_manager import websocket_router
+from app.api.v1.endpoints.enterprise_ops import router as enterprise_ops_router
 # Import enterprise services with fallback
 try:
-    from app.services.enterprise_service_manager import enterprise_service_manager
+    from app.services.enterprise_service_manager import EnterpriseServiceManager
+    enterprise_service_manager = EnterpriseServiceManager()
     ENTERPRISE_AVAILABLE = True
 except ImportError:
     ENTERPRISE_AVAILABLE = False
+    enterprise_service_manager = None
     logger.warning("Enterprise services not available - running in basic mode")
 from app.api.v1.endpoints.health import router as health_router
 from app.core.logging import setup_logging
@@ -46,6 +49,7 @@ from app.middleware.rate_limit import rate_limit_middleware
 from app.middleware.error_handler import ErrorHandlingMiddleware
 from app.middleware.security_enhanced import SecurityEnhancementMiddleware
 from app.middleware.multi_tenant import MultiTenantMiddleware
+from app.middleware.enterprise_middleware import EnterpriseMiddleware
 # Import cache service with fallback
 try:
     from app.services.cache_service import cache_service
@@ -77,7 +81,7 @@ async def lifespan(app: FastAPI):
     app.state.start_time = time.time()
 
     # Initialize distributed tracing
-    if TRACING_AVAILABLE and settings.ENABLE_TRACING:
+    if TRACING_AVAILABLE and getattr(settings, 'ENABLE_TRACING', False):
         try:
             tracing_service.initialize(app)
             logger.info("Distributed tracing initialized")
@@ -85,14 +89,6 @@ async def lifespan(app: FastAPI):
             logger.error(f"Tracing initialization failed: {str(e)}")
     else:
         logger.info("Tracing disabled or not available")
-
-    # Initialize cache service
-    if CACHE_AVAILABLE and settings.ENABLE_CACHING:
-        try:
-            await cache_service.initialize()
-            logger.info("Cache service initialized")
-        except Exception as e:
-            logger.error(f"Cache initialization failed: {str(e)}")
 
     # Initialize database
     if init_database:
@@ -104,9 +100,46 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("Database initialization skipped - running in minimal mode")
 
+    # Initialize enterprise services
+    if ENTERPRISE_AVAILABLE and enterprise_service_manager:
+        try:
+            await enterprise_service_manager.initialize_all_services()
+            logger.info("Enterprise services initialized")
+
+            # Initialize enterprise components
+            from app.core.observability import observability
+            from app.core.event_streaming import event_bus
+            from app.core.chaos_engineering import chaos_monkey
+
+            await observability.initialize()
+
+            # Create default event streams
+            event_bus.create_stream("performance")
+            event_bus.create_stream("security")
+            event_bus.create_stream("errors")
+            event_bus.create_stream("business")
+
+            # Create default chaos experiments
+            chaos_monkey.create_default_experiments()
+
+            logger.info("Enterprise components initialized")
+
+        except Exception as e:
+            logger.error(f"Enterprise service initialization failed: {str(e)}")
+    else:
+        logger.info("Enterprise services not available")
+
     yield
 
     logger.info("Shutting down chatbot backend...")
+
+    # Shutdown enterprise services
+    if ENTERPRISE_AVAILABLE and enterprise_service_manager:
+        try:
+            await enterprise_service_manager.shutdown_all_services()
+            logger.info("Enterprise services shutdown complete")
+        except Exception as e:
+            logger.error(f"Enterprise service shutdown failed: {str(e)}")
 
     # Cleanup database connections
     try:
@@ -182,6 +215,9 @@ if not settings.DEBUG:
         allowed_hosts=settings.ALLOWED_HOSTS
     )
 
+# Add enterprise middleware stack
+app.add_middleware(EnterpriseMiddleware, enable_security=True, enable_observability=True)
+
 # Add enhanced security and error handling middleware
 app.add_middleware(ErrorHandlingMiddleware)
 app.add_middleware(SecurityEnhancementMiddleware)
@@ -195,6 +231,7 @@ app.include_router(api_router, prefix="/api/v1")
 app.include_router(super_admin_router, prefix="/api/v1")
 app.include_router(websocket_router, prefix="/api/v1")
 app.include_router(health_router, prefix="/api/v1")
+app.include_router(enterprise_ops_router, prefix="/api/v1")
 
 # Mount static files for frontend (Railway deployment)
 static_dir = Path("./static")

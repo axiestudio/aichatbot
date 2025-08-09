@@ -10,7 +10,8 @@ import {
   Brain,
   Zap,
   MessageSquare,
-  Activity
+  Activity,
+  CreditCard
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import DashboardLayout from '../components/layout/DashboardLayout'
@@ -25,6 +26,8 @@ import LiveConfiguration from '../components/admin/LiveConfiguration'
 import SystemMonitoring from '../components/admin/SystemMonitoring'
 import AIInsightsDashboard from '../components/admin/AIInsightsDashboard'
 import IntelligenceDashboard from '../components/admin/IntelligenceDashboard'
+import EmbedManager from '../components/admin/EmbedManager'
+import BillingManager from '../components/admin/BillingManager'
 
 const navigation = [
   {
@@ -44,6 +47,18 @@ const navigation = [
     href: '/admin/intelligence',
     icon: Zap,
     description: 'Conversation, content & knowledge intelligence'
+  },
+  {
+    name: 'Embed Manager',
+    href: '/admin/embed',
+    icon: MessageSquare,
+    description: 'Generate embed codes and manage chat widgets'
+  },
+  {
+    name: 'Billing & Premium',
+    href: '/admin/billing',
+    icon: CreditCard,
+    description: 'Manage subscription and remove branding'
   },
   {
     name: 'Live Configuration',
@@ -126,6 +141,8 @@ export default function AdminDashboard() {
         <Route path="/rag" element={<RagInstructions />} />
         <Route path="/documents" element={<DocumentManager />} />
         <Route path="/analytics" element={<Analytics />} />
+        <Route path="/embed" element={<EmbedManager />} />
+        <Route path="/billing" element={<BillingManager />} />
       </Routes>
     </DashboardLayout>
   )

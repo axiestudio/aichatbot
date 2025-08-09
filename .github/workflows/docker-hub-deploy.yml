@@ -50,17 +50,38 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: 🧪 Run Tests
+    - name: 🔍 Run Final Verification
+      run: |
+        node final_verification.js
+
+    - name: 🧪 Run Unit Tests
       run: |
         cd backend
         python -m pytest tests/ -v --tb=short
       continue-on-error: true
       
-    - name: 🔍 Lint Code
+    - name: 🔍 Lint Backend Code
       run: |
         cd backend
         pip install flake8
         flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+      continue-on-error: true
+
+    - name: 🎨 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: 📦 Install Frontend Dependencies
+      run: |
+        cd frontend
+        node install_dependencies.js
+      continue-on-error: true
+
+    - name: 🧪 Test Frontend Build
+      run: |
+        cd frontend
+        node test_build.js
       continue-on-error: true
 
   # ============================================================================
@@ -170,7 +191,7 @@ jobs:
         echo "🔍 Testing health endpoints..."
         for i in {1..6}; do
           echo "Attempt $i/6..."
-          if curl -f http://localhost:8000/health || curl -f http://localhost:8000/api/v1/health; then
+          if curl -f http://localhost:8000/api/v1/health || curl -f http://localhost:8000/api/v1/ops/health/comprehensive; then
             echo "✅ Health check passed!"
             break
           elif [ $i -eq 6 ]; then

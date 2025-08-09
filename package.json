@@ -1,0 +1,35 @@
+{
+  "name": "axie-studio-monetization",
+  "version": "1.0.0",
+  "description": "Axie Studio Premium Branding Monetization Platform",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd frontend && npm run preview",
+    "dev": "cd frontend && npm run dev",
+    "install-frontend": "cd frontend && npm install",
+    "install-backend": "cd backend && pip install -r requirements.txt",
+    "test": "cd frontend && npm test"
+  },
+  "workspaces": [
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/axiestudio/aichatbot.git"
+  },
+  "keywords": [
+    "chatbot",
+    "ai",
+    "monetization",
+    "stripe",
+    "branding",
+    "saas"
+  ],
+  "author": "Axie Studio",
+  "license": "MIT"
+}
