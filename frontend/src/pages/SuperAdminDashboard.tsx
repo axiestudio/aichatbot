@@ -1,30 +1,61 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  Building2, 
-  BarChart3, 
-  CreditCard, 
-  Users, 
-  Settings, 
+import { Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom'
+import {
+  LayoutDashboard,
+  Building2,
+  BarChart3,
+  CreditCard,
+  Users,
+  Settings,
   LogOut,
   Crown,
   Globe,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Eye,
+  UserPlus
 } from 'lucide-react'
+import { useSuperAdminStore } from '../stores/superAdminStore'
+import DashboardLayout from '../components/layout/DashboardLayout'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import Badge from '../components/ui/Badge'
 
-// Super Admin Components
-import SuperAdminOverview from '../components/super-admin/SuperAdminOverview'
-import InstanceManagement from '../components/super-admin/InstanceManagement'
-import GlobalAnalytics from '../components/super-admin/GlobalAnalytics'
-import BillingManagement from '../components/super-admin/BillingManagement'
-import SuperAdminSettings from '../components/super-admin/SuperAdminSettings'
+// Super Admin Components (we'll create these)
+// import SuperAdminOverview from '../components/super-admin/SuperAdminOverview'
+// import InstanceManagement from '../components/super-admin/InstanceManagement'
+// import GlobalAnalytics from '../components/super-admin/GlobalAnalytics'
+// import BillingManagement from '../components/super-admin/BillingManagement'
+// import SuperAdminSettings from '../components/super-admin/SuperAdminSettings'
 
 const SuperAdminDashboard: React.FC = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [notifications, setNotifications] = useState(0)
+
+  const {
+    superAdmin,
+    isAuthenticated,
+    clients,
+    systemStats,
+    impersonatedClient,
+    loadClients,
+    loadSystemStats,
+    impersonateClient,
+    stopImpersonation,
+    logout
+  } = useSuperAdminStore()
+
+  useEffect(() => {
+    if (!isAuthenticated || !superAdmin) {
+      navigate('/super-admin/login')
+      return
+    }
+
+    loadClients()
+    loadSystemStats()
+  }, [isAuthenticated, superAdmin])
 
   const navigation = [
     {

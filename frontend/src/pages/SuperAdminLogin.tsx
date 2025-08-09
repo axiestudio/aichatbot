@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Crown, Lock, Mail, Eye, EyeOff, Shield } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import { useSuperAdminStore } from '../stores/superAdminStore'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 
@@ -9,35 +10,21 @@ const SuperAdminLogin: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+
+  const { login, isLoading, error, clearError } = useSuperAdminStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    clearError()
 
-    try {
-      const response = await fetch('/api/v1/super-admin/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
+    const success = await login(email, password)
 
-      if (response.ok) {
-        const data = await response.json()
-        localStorage.setItem('superAdminToken', data.access_token)
-        toast.success('Welcome back, Super Admin!')
-        navigate('/super-admin')
-      } else {
-        const error = await response.json()
-        toast.error(error.detail || 'Invalid credentials')
-      }
-    } catch (error) {
-      toast.error('Login failed. Please try again.')
-    } finally {
-      setIsLoading(false)
+    if (success) {
+      toast.success('Welcome back, Super Admin!')
+      navigate('/super-admin')
+    } else if (error) {
+      toast.error(error)
     }
   }
 

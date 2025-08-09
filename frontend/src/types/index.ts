@@ -109,10 +109,11 @@ export interface AdminUser {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'super_admin';
   createdAt: Date;
   lastLogin: Date;
   tenantId?: string;
+  isActive: boolean;
   subscription?: {
     tier: 'free' | 'premium' | 'enterprise';
     status: 'active' | 'inactive' | 'cancelled' | 'past_due';
@@ -132,6 +133,53 @@ export interface AdminUser {
     can_export_data: boolean;
     can_manage_users: boolean;
   };
+}
+
+// Super Admin specific interface
+export interface SuperAdminUser extends Omit<AdminUser, 'tenantId'> {
+  role: 'super_admin';
+  tenantId: null;
+  // Super admin specific permissions
+  superAdminPermissions: {
+    canCreateClients: true;
+    canSuspendClients: true;
+    canAccessAllData: true;
+    canImpersonateClients: true;
+    canManageSystemSettings: true;
+    canViewSystemAnalytics: true;
+  };
+}
+
+// Client Admin specific interface
+export interface ClientAdmin extends AdminUser {
+  role: 'admin';
+  tenantId: string;
+  clientName: string;
+  clientDomain?: string;
+  isActive: boolean;
+}
+
+// Client management for Super Admin
+export interface ClientManagement {
+  id: string;
+  name: string;
+  email: string;
+  domain?: string;
+  status: 'active' | 'suspended' | 'inactive';
+  subscription: {
+    tier: 'free' | 'premium' | 'enterprise';
+    status: 'active' | 'inactive' | 'cancelled' | 'past_due';
+    current_period_end?: Date;
+  };
+  usage: {
+    conversations: number;
+    messages: number;
+    storage: number;
+    api_calls: number;
+  };
+  createdAt: Date;
+  lastActivity: Date;
+  adminUsers: ClientAdmin[];
 }
 
 export interface Analytics {

@@ -20,31 +20,27 @@ const AxieHero = () => {
 
   return (
     <>
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
+      {/* Professional Navigation */}
+      <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <img 
-                src="https://www.axiestudio.se/Axiestudiologo.jpg" 
-                alt="Axie Studio" 
-                className="h-10 w-10 rounded-lg object-cover"
+              <img
+                src="https://www.axiestudio.se/Axiestudiologo.jpg"
+                alt="Axie Studio"
+                className="h-8 w-8 rounded-lg object-cover"
               />
-              <div className="flex flex-col">
-                <span className="text-xl font-bold text-white">Axie Studio</span>
-                <span className="text-xs text-purple-300">AI Chat Platform</span>
-              </div>
+              <span className="text-xl font-semibold text-gray-900">Axie Studio</span>
             </div>
             
-            {/* Desktop Navigation */}
+            {/* Professional Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
-              <a href="#demo" className="text-gray-300 hover:text-white transition-colors">Demo</a>
-              <a href="#embedding" className="text-gray-300 hover:text-white transition-colors">Embedding</a>
-              <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">Pricing</a>
-              <Link 
-                to="/admin/login" 
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg transition-all transform hover:scale-105 font-medium"
+              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Features</a>
+              <a href="#demo" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Demo</a>
+              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Pricing</a>
+              <Link
+                to="/admin/login"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
               >
                 Admin Login
               </Link>
@@ -81,51 +77,46 @@ const AxieHero = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 blur-3xl"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl"></div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
+      {/* Professional Hero Section */}
+      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto">
           <div className={`text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            {/* Badge */}
-            <div className="inline-flex items-center space-x-2 bg-purple-500/20 text-purple-300 px-6 py-3 rounded-full mb-8 border border-purple-500/30">
-              <Sparkles className="w-5 h-5" />
+            {/* Professional Badge */}
+            <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full mb-8 border border-blue-200">
+              <MessageSquare className="w-4 h-4" />
               <span className="text-sm font-medium">Enterprise AI Chat Platform</span>
             </div>
-            
-            {/* Main Heading */}
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 leading-tight">
-              Embed AI Chat
+
+            {/* Clean Main Heading */}
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+              Professional AI Chat
               <br />
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                Anywhere
+              <span className="text-blue-600">
+                For Your Business
               </span>
             </h1>
-            
-            {/* Subheading */}
-            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
-              The most advanced embeddable AI chat platform. Deploy intelligent conversations 
-              on any website with enterprise-grade security and customization.
+
+            {/* Professional Subheading */}
+            <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Deploy intelligent AI conversations on any website with enterprise-grade security,
+              advanced analytics, and complete customization control.
             </p>
             
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-              <Link 
-                to="/chat" 
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-10 py-5 rounded-xl font-semibold flex items-center space-x-3 transition-all transform hover:scale-105 text-lg shadow-2xl"
+            {/* Professional CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+              <Link
+                to="/chat"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors shadow-sm"
               >
-                <Play className="w-6 h-6" />
-                <span>Try Live Demo</span>
+                <Play className="w-5 h-5" />
+                <span>Try Demo</span>
               </Link>
-              <a 
-                href="#embedding" 
-                className="border-2 border-white/20 text-white px-10 py-5 rounded-xl font-semibold hover:bg-white/10 transition-colors flex items-center space-x-3 text-lg"
+              <a
+                href="#features"
+                className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors"
               >
-                <Code className="w-6 h-6" />
-                <span>Get Embed Code</span>
+                <ArrowRight className="w-5 h-5" />
+                <span>Learn More</span>
               </a>
             </div>
 
