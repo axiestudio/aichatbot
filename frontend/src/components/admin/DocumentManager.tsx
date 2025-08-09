@@ -587,5 +587,4 @@ export const DocumentManager: React.FC = () => {
   );
 };
 
-export { DocumentManager };
 export default DocumentManager;

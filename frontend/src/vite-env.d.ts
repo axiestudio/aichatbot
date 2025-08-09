@@ -1,5 +1,11 @@
 /// <reference types="vite/client" />
 
+declare global {
+  interface Window {
+    initAxieChatWidget?: (config: any) => void;
+  }
+}
+
 interface ImportMetaEnv {
   readonly VITE_API_URL: string
   readonly VITE_WS_URL: string

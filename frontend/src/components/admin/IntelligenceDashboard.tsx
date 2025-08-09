@@ -72,9 +72,9 @@ const IntelligenceDashboard: React.FC = () => {
       ])
 
       const [conversationData, moderationData, knowledgeData] = await Promise.all([
-        conversationRes.ok ? conversationRes.json() : {},
-        moderationRes.ok ? moderationRes.json() : {},
-        knowledgeRes.ok ? knowledgeRes.json() : {}
+        conversationRes.ok ? conversationRes.json() : {} as any,
+        moderationRes.ok ? moderationRes.json() : {} as any,
+        knowledgeRes.ok ? knowledgeRes.json() : {} as any
       ])
 
       setData({
@@ -87,11 +87,13 @@ const IntelligenceDashboard: React.FC = () => {
           top_topics: conversationData?.top_topics || []
         },
         content_moderation: {
+          total_content_moderated: moderationData?.total_content_moderated || 0,
           total_moderated: moderationData?.total_content_moderated || 0,
           action_distribution: moderationData?.action_distribution || {},
           toxicity_distribution: moderationData?.toxicity_distribution || {},
           block_rate: moderationData?.block_rate || 0,
           flag_rate: moderationData?.flag_rate || 0,
+          average_ai_safety_score: moderationData?.average_ai_safety_score || 1.0,
           ai_safety_score: moderationData?.average_ai_safety_score || 1.0
         },
         knowledge_graph: {

@@ -179,11 +179,13 @@ export interface IntelligenceAnalytics {
 
 export interface ModerationAnalytics {
   total_content_moderated: number;
+  total_moderated: number;
   action_distribution: Record<string, number>;
   toxicity_distribution: Record<string, number>;
   block_rate: number;
   flag_rate: number;
   average_ai_safety_score: number;
+  ai_safety_score: number;
 }
 
 export interface KnowledgeGraphAnalytics {

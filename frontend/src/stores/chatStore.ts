@@ -15,7 +15,7 @@ interface ChatState {
   setConfig: (config: ChatConfig) => void
   setSessionId: (sessionId: string) => void
   clearChat: () => void
-  sendMessage: (content: string) => Promise<void>
+  sendMessage: (content: string, attachments?: File[]) => Promise<void>
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -47,7 +47,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   
   clearChat: () => set({ messages: [], sessionId: null }),
   
-  sendMessage: async (content: string) => {
+  sendMessage: async (content: string, attachments?: File[]) => {
     const { addMessage, config } = get()
     
     // Add user message
