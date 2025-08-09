@@ -23,6 +23,13 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 
+// Declare global Window interface for initAxieChatWidget
+declare global {
+  interface Window {
+    initAxieChatWidget?: (config: any) => void;
+  }
+}
+
 const EmbedManager = () => {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('html');
