@@ -18,10 +18,15 @@ import {
   RefreshCw,
   Save,
   TestTube,
+  Activity,
+  Users,
+  MessageSquare,
   BarChart3,
   AlertCircle
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+import { useClientStore } from '../../stores/clientStore';
+import { toast } from 'react-hot-toast';
 
 // Declare global Window interface for initAxieChatWidget
 declare global {
@@ -32,18 +37,23 @@ declare global {
 
 const EmbedManager = () => {
   const { user } = useAuthStore();
+  const {
+    chatConfig,
+    activeEmbeds,
+    liveSessions,
+    analytics,
+    generateEmbedCode,
+    testEmbedConnection,
+    updateChatConfig,
+    loadActiveEmbeds,
+    loadLiveSessions
+  } = useClientStore();
+
   const [activeTab, setActiveTab] = useState('html');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
-  const [embedStats, setEmbedStats] = useState({
-    activeEmbeds: 0,
-    monthlyConversations: 0,
-    domains: [],
-    lastUpdated: null
-  });
+  const [testDomain, setTestDomain] = useState('');
 
   const [embedConfig, setEmbedConfig] = useState({
     position: 'bottom-right',
@@ -241,10 +251,16 @@ const chatResponse = await fetch('${baseUrl}/api/v1/chat/send', {
 ></iframe>`
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(embedCodes[activeTab as keyof typeof embedCodes]);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyToClipboard = async () => {
+    try {
+      const codeToCopy = activeTab === 'html' ? generateEmbedCode() : embedCodes[activeTab as keyof typeof embedCodes];
+      await navigator.clipboard.writeText(codeToCopy);
+      setCopied(true);
+      toast.success('Embed code copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error('Failed to copy embed code');
+    }
   };
 
   const positions = [
@@ -311,6 +327,83 @@ const chatResponse = await fetch('${baseUrl}/api/v1/chat/send', {
           </div>
         </div>
       </div>
+
+      {/* Real-time Monitoring */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active Embeds</p>
+              <p className="text-3xl font-bold text-gray-900">{activeEmbeds.length}</p>
+            </div>
+            <Globe className="w-8 h-8 text-blue-600" />
+          </div>
+          <div className="mt-4">
+            <div className="text-sm text-gray-500">
+              {activeEmbeds.reduce((sum, embed) => sum + embed.visitors, 0)} active visitors
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Live Sessions</p>
+              <p className="text-3xl font-bold text-gray-900">{liveSessions.filter(s => s.isActive).length}</p>
+            </div>
+            <Users className="w-8 h-8 text-green-600" />
+          </div>
+          <div className="mt-4">
+            <div className="text-sm text-gray-500">
+              {liveSessions.length} total sessions today
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Messages Today</p>
+              <p className="text-3xl font-bold text-gray-900">{analytics?.totalMessages || 0}</p>
+            </div>
+            <MessageSquare className="w-8 h-8 text-purple-600" />
+          </div>
+          <div className="mt-4">
+            <div className="text-sm text-gray-500">
+              Avg {analytics?.avgSessionDuration || 0} min per session
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Active Embeds List */}
+      {activeEmbeds.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+            <Activity className="w-5 h-5" />
+            <span>Active Embeds</span>
+          </h3>
+          <div className="space-y-3">
+            {activeEmbeds.map((embed) => (
+              <div key={embed.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <div>
+                    <div className="font-medium text-gray-900">{embed.domain}</div>
+                    <div className="text-sm text-gray-500">
+                      Last seen: {new Date(embed.lastSeen).toLocaleTimeString()}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-medium text-gray-900">{embed.visitors} visitors</div>
+                  <div className="text-sm text-gray-500">Active now</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Configuration Panel */}
@@ -623,7 +716,7 @@ const chatResponse = await fetch('${baseUrl}/api/v1/chat/send', {
               </div>
               
               <pre className="p-6 text-sm text-green-400 overflow-x-auto bg-gray-900 min-h-[300px]">
-                <code>{embedCodes[activeTab as keyof typeof embedCodes]}</code>
+                <code>{activeTab === 'html' ? generateEmbedCode() : embedCodes[activeTab as keyof typeof embedCodes]}</code>
               </pre>
             </div>
           </div>

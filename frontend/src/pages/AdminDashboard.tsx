@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Palette,
@@ -11,9 +12,14 @@ import {
   Zap,
   MessageSquare,
   Activity,
-  CreditCard
+  CreditCard,
+  Globe,
+  Eye,
+  Users
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
+import { useClientStore } from '../stores/clientStore'
+import { useSuperAdminStore } from '../stores/superAdminStore'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import DashboardOverview from '../components/admin/DashboardOverview'
 import ChatDesign from '../components/admin/ChatDesign'
@@ -111,16 +117,35 @@ const navigation = [
 ]
 
 export default function AdminDashboard() {
+  const navigate = useNavigate()
   const { logout, user } = useAuthStore()
+  const { client, isAuthenticated, loadChatConfig, loadActiveEmbeds, loadLiveSessions, loadAnalytics } = useClientStore()
+  const { impersonatedClient, stopImpersonation } = useSuperAdminStore()
+
+  useEffect(() => {
+    // Load client data when dashboard loads
+    if (isAuthenticated) {
+      loadChatConfig()
+      loadActiveEmbeds()
+      loadLiveSessions()
+      loadAnalytics()
+    }
+  }, [isAuthenticated])
 
   const handleLogout = () => {
-    logout()
+    // If being impersonated, stop impersonation instead of logout
+    if (impersonatedClient) {
+      stopImpersonation()
+      navigate('/super-admin')
+    } else {
+      logout()
+    }
   }
 
   return (
     <DashboardLayout
       title="Admin Panel"
-      subtitle="Chatbot Management System"
+      subtitle={impersonatedClient ? "Super Admin View" : "Chatbot Management System"}
       navigation={navigation}
       user={user ? {
         name: user.name || 'Administrator',
@@ -129,6 +154,31 @@ export default function AdminDashboard() {
       onLogout={handleLogout}
       notifications={0}
     >
+      {/* Impersonation Banner */}
+      {impersonatedClient && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Eye className="w-5 h-5 text-yellow-400 mr-2" />
+              <div>
+                <p className="text-sm font-medium text-yellow-800">
+                  Super Admin Mode: Viewing client dashboard
+                </p>
+                <p className="text-sm text-yellow-700">
+                  You are currently impersonating a client admin account
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded text-sm font-medium transition-colors"
+            >
+              Exit Impersonation
+            </button>
+          </div>
+        </div>
+      )}
+
       <Routes>
         <Route path="/" element={<DashboardOverview />} />
         <Route path="/ai-insights" element={<AIInsightsDashboard />} />
